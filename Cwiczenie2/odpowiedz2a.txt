@@ -1,0 +1,6 @@
+Przy n-krotnym wywołaniu funkcji fork() w pętli powstaje dokładnie n procesów potomnych,
+ponieważ tylko proces macierzysty wykonuje wszystkie iteracje. 
+Każdy proces potomny, po wykonaniu fork(), natychmiast uruchamia inny program przez execlp(), co zastępuje jego kod i uniemożliwia dalsze tworzenie procesów. 
+W efekcie nie dochodzi do kopiowania procesów potomnych – jedynie macierzysty tworzy kolejne procesy. 
+Łącznie powstaje więc n + 1 procesów (n potomnych i jeden macierzysty).
+
