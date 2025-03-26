@@ -1,0 +1,9 @@
+Ile procesow powstanie przy n-krotnym wywolaniu funkcji fork i dlaczego?
+-Ponieważ fork w petli for podwaja liczbe procesow dla kazdego juz istniejacego procesu, zatem licząc proces macierzysty mamy:
+n - liczba iteracji
+dla n=0 1 proces (macierzysty)
+dla n=1 2 procesy
+dla n=2 4 procesy
+dla n=3 8 procesow
+Wylania sie tutaj zaleznosc dana wzorem P(n) = 2^n
+
