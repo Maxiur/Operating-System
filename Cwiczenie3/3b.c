@@ -1,7 +1,19 @@
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-// Autor: Mateusz Kamiński                      Krakow 27.03.2025
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// Autor: Mateusz Kamiński                      			Krakow 27.03.2025
 // CWICZENIE 3B Wysylanie sygnalow do procesow i ich obsluga
 //
+// W procesie potomnym uruchamiany jest program z podpunktu (a)
+// za pomocą execlp() i przekazywane są do niego argumenty:
+// numer sygnału i tryb obsługi (domyślny, ignorowanie, własna obsługa).
+//
+// Przykład uruchomienia:
+// 		./program_b program_a 2 D
+// gdzie:
+//		program_a - nazwa programu z (a)
+//      2 - numer sygnału (np. SIGINT)
+//      D - tryb obsługi: D - domyślny, I - ignorowanie, P - własna obsługa
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
 #define _XOPEN_SOURCE 700 // Definiuje standart POSIX, ktory wlacza getpgid()
 #define _GNU_SOURCE // Dla strsignal()
@@ -19,7 +31,7 @@
 int main(int argc, char *argv[]) {
     assert(argc == 4 && "Zła liczba argumentów! Proszę podać program do uruchomienia!\n"); // Zabezpieczenie
 
-    // Jeśli argv[1] nie zawiera ścieżki (tzn. nie zaczyna się od './' to dodajemy ją
+    // Jeśli argv[1] nie zawiera ścieżki (tzn. nie zaczyna się od './' to dodajemy ją)
     char path[256];
     snprintf(path, sizeof(path), "./%s", argv[1]);
 
@@ -44,9 +56,9 @@ int main(int argc, char *argv[]) {
 
     // Sprawdzenie czy proces potomny zyje
     if(kill(pid,0) == 0){
-        printf("[Macierzysty] Proces potomny (PID:%d) żyje, więc wysyłam sygnał\n", pid);
+        printf("[Macierzysty] Proces potomny (PID:%d) istnieje (może być zombie), więc wysyłam sygnał\n", pid);
         sleep(2);
-        kill(pid, atoi(argv[2])); // wysłanie SIGINT
+        kill(pid, atoi(argv[2])); // wysłanie sygnału podanego przez użytkownika
         }
      else
         perror("[Macierzysty] Proces nie istnieje");
@@ -66,7 +78,7 @@ int main(int argc, char *argv[]) {
 		}
 
     // Proces macierzysty czeka na zakonczenie wszystkich potomkow
-    printf("Proces macierzysty (PID: %d PPID: %d) zakonczyl prace.\n", getpid(),getppid());
+    printf("Proces macierzysty [Lider] (PID: %d PPID: %d) zakończyl prace.\n", getpid(),getppid());
 
     return 0;
 }

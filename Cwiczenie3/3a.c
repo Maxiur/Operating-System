@@ -32,9 +32,12 @@ int main(int argc, char *argv[]){
 
     // Argumenty wywołania
     int sig = atoi(argv[1]); // Konwersja napisu na liczbę
-    char opcja = toupper(argv[2][0]); // argv[2][n] czyta n - ty znak z napisu
+    if (sig == SIGKILL || sig == SIGSTOP) {
+        fprintf(stderr, "Sygnał %d (%s) nie może być przechwycony, ignorowany ani obsłużony przez signal().\n", sig, strsignal(sig));
+        exit(1);
+    }
 
-    //printf("PID procesu: %d\n", getpid());
+    char opcja = toupper(argv[2][0]); // argv[2][n] czyta n - ty znak z napisu
 
     // Konfiguracji reakcji na sygnał
     switch (opcja) {
