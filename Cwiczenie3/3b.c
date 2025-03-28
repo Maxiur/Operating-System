@@ -17,7 +17,11 @@
 #include <signal.h>
 
 int main(int argc, char *argv[]) {
-    assert(argc == 2 && "Zła liczba argumentów! Proszę podać program do uruchomienia!\n"); // Zabezpieczenie
+    assert(argc == 4 && "Zła liczba argumentów! Proszę podać program do uruchomienia!\n"); // Zabezpieczenie
+
+    // Jeśli argv[1] nie zawiera ścieżki (tzn. nie zaczyna się od './' to dodajemy ją
+    char path[256];
+    snprintf(path, sizeof(path), "./%s", argv[1]);
 
     pid_t pid = fork();
         switch (pid) {
@@ -27,8 +31,8 @@ int main(int argc, char *argv[]) {
 
             case 0:
                 // Proces potomny uruchamia inny program przy pomocy execlp
-                printf(" >> Stworzenie potommka PID: %d PPID: %d\n", getpid(), getppid());
-                execlp(argv[1], argv[1], "2" , "d", (char *)NULL);
+                printf(" >> Stworzenie potomka PID: %d PPID: %d\n", getpid(), getppid());
+                execlp(path, path, argv[2], argv[3], (char *)NULL);
                 perror("execlp error");
                 _exit(2);
 
@@ -40,24 +44,26 @@ int main(int argc, char *argv[]) {
 
     // Sprawdzenie czy proces potomny zyje
     if(kill(pid,0) == 0){
-        printf("Proces potomny (PID:%d) zyje\n", pid);
-        kill(pid, 2); // wysłanie SIGINT
+        printf("[Macierzysty] Proces potomny (PID:%d) żyje, więc wysyłam sygnał\n", pid);
+        sleep(2);
+        kill(pid, atoi(argv[2])); // wysłanie SIGINT
         }
      else
-        perror("Proces nie istnieje");
+        perror("[Macierzysty] Proces nie istnieje");
 
        int status;
-       if(wait(&status)>0)
-       {
-            printf("Proces potomny (PID:%d) zakonczyl zycie\n",getpid());
-            if(WIFSIGNALED(status))
-                printf(">> Zabił go sygnał %d (%s)\n",WTERMSIG(status),strsignal(WTERMSIG(status)));
-            
-       }
-       else if(wait(&status)==-1) {
-            perror("wait error");
-            exit(1);
-       }
+       if (wait(&status) == -1) {
+    		perror("wait error");
+    		exit(1);
+		}
+       else {
+    		printf("[Macierzysty] Proces potomny (PID:%d) zakonczyl zycie\n", pid);
+    		if(WIFSIGNALED(status))
+        	{
+                  sleep(1);
+                  printf("[Macierzysty] >> Zabił go sygnał %d (%s)\n", WTERMSIG(status), strsignal(WTERMSIG(status)));
+            }
+		}
 
     // Proces macierzysty czeka na zakonczenie wszystkich potomkow
     printf("Proces macierzysty (PID: %d PPID: %d) zakonczyl prace.\n", getpid(),getppid());
