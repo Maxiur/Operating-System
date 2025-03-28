@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
             case 0:
                 // Proces potomny uruchamia inny program przy pomocy execlp
                 printf(" >> Stworzenie potommka PID: %d PPID: %d\n", getpid(), getppid());
-                execlp(argv[1], argv[1], "2" , "P", (char *)NULL);
+                execlp(argv[1], argv[1], "2" , "d", (char *)NULL);
                 perror("execlp error");
                 _exit(2);
 
@@ -40,16 +40,24 @@ int main(int argc, char *argv[]) {
 
     // Sprawdzenie czy proces potomny zyje
     if(kill(pid,0) == 0){
-        printf("Proces potomny (PID: %d) zyje\n", pid);
+        printf("Proces potomny (PID:%d) zyje\n", pid);
         kill(pid, 2); // wysłanie SIGINT
         }
      else
         perror("Proces nie istnieje");
 
-     if(wait(NULL) == -1) {
-        perror("wait error");
-        exit(1);
-        }
+       int status;
+       if(wait(&status)>0)
+       {
+            printf("Proces potomny (PID:%d) zakonczyl zycie\n",getpid());
+            if(WIFSIGNALED(status))
+                printf(">> Zabił go sygnał %d (%s)\n",WTERMSIG(status),strsignal(WTERMSIG(status)));
+            
+       }
+       else if(wait(&status)==-1) {
+            perror("wait error");
+            exit(1);
+       }
 
     // Proces macierzysty czeka na zakonczenie wszystkich potomkow
     printf("Proces macierzysty (PID: %d PPID: %d) zakonczyl prace.\n", getpid(),getppid());
