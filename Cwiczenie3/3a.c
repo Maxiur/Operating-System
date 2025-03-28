@@ -6,7 +6,7 @@
 // na domyslna, ignorowanie lub przechwycenie. W przypadku przechwycenia
 // sygnalu, program wyswietla jego numer i nazwe.
 //
-// Przykładowe uruchomienie: ./program 2 P
+// Przykładowe uruchomienie: ./program_a 2 P
 
 #define _XOPEN_SOURCE 700 // Definiuje standart POSIX, ktory wlacza getpgid()
 #define _GNU_SOURCE // Dla strsignal()
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
     int sig = atoi(argv[1]); // Konwersja napisu na liczbę
     char opcja = toupper(argv[2][0]); // argv[2][n] czyta n - ty znak z napisu
 
-    printf("PID procesu: %d\n", getpid());
+    //printf("PID procesu: %d\n", getpid());
 
     // Konfiguracji reakcji na sygnał
     switch (opcja) {
@@ -70,5 +70,5 @@ int main(int argc, char *argv[]){
         pause();
     }
 
-      return 0;
+    return 0;
  }

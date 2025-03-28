@@ -9,28 +9,44 @@ CFLAGS = -Wall -g -pedantic -std=c99
 PARENT_DIR = $(notdir $(CURDIR))
 
 # Pliki wynikowe
-MAIN_NAME = 3a
-SRC_OBJS = $(MAIN_NAME).c
-OBJS = $(MAIN_NAME).o
-TARGET = program
+A_SRC = 3a.c
+A_OBJ = 3a.o
+A_EXE = program_a
+
+B_SRC = 3b.c
+B_OBJ = 3b.o
+B_EXE = program_b
 
 # Reguła główna
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+all: $(A_EXE) $(B_EXE)
+
+# Kompilacja plików wykonywalnych
+$(A_EXE): $(A_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(B_EXE): $(B_OBJ) $(A_EXE)
+	$(CC) $(CFLAGS) -o $@ $(B_OBJ)
 
 # Kompilacja plików obiektowych
-$(OBJS): $(SRC_OBJS)
-	$(CC) $(CFLAGS) -c $(SRC_OBJS) -o $(OBJS)
+$(A_OBJ): $(A_SRC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(B_OBJ): $(B_SRC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Czyszczenie
 .PHONY: clean
 clean:
-	rm -f *.o  *~ *.a *.so *.x core core* a.out; rm -rf $(TARGET) $(PROGRAM)
+	rm -f *.o  *~ *.a *.so *.x core core* a.out; rm -rf $(A_EXE) $(B_EXE)
 
 # Uruchomienie pliku
-.PHONY: run
-run: $(ARG) $(TARGET) 
-	./$(TARGET) $(PROGRAM)
+.PHONY: run_a
+run_a: $(A_EXE))
+	./$(A_EXE)
+
+.PHONY: run_b
+run_b: $(B_EXE)
+	./$(B_EXE) ./$(A_EXE)
 
 # Pakowanie i archiwizacja
 .PHONY: clean
