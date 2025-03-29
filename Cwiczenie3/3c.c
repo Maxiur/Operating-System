@@ -64,7 +64,10 @@ int main(int argc, char *argv[]) {
         }
 
         int status;
-        wait(&status);
+        if(wait(&status) == -1){;
+          perror("wait error");
+          exit(5);
+        }
 
         printf("[PROGRAM C] >> Program_leader zakończył pracę.\n");
         break;
