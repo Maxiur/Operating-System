@@ -9,7 +9,7 @@
 #define _GNU_SOURCE // Dla strsignal()
 #define _POSIX_C_SOURCE 200112L // Dla kill
 
-#define CHILDREN 3 // Liczba procesów potomnych
+const int CHILDREN = 3; // Liczba procesów potomnych
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,17 +28,23 @@ int main(int argc, char *argv[]) {
     char path[256];
     snprintf(path, sizeof(path), "./%s", argv[1]);
 
-      printf("[Lider] >> (PID: %d | PPID: %d)\n", getpid(), getppid());
+      printf("[Lider] >> (PID: %d | PPID: %d | PGID: %d)\n", getpid(), getppid(), getpgid(0));
       // Ignorowanie sygnału w procesie lidera
-      if(signal(SIGINT, SIG_IGN) == SIG_ERR){
+      if(signal(atoi(argv[2]), SIG_IGN) == SIG_ERR){
         perror("signal error");
         exit(1);
       }
+      else
+      printf("[Lider] Ustawienie: Ignorowanie sygnałów\n");
+
       // Ustawienie jako lider grupy procesów
       if(setpgid(0, 0) == -1){
         perror("setpgid error");
         exit(2);
       }
+      else
+      printf("[Lider] Ustawienie: [Lider] na Lidera Grupy\n");
+      printf("[Lider] >> (PID: %d | PPID: %d | PGID: %d)\n", getpid(), getppid(), getpgid(0));
 
         for(int i = 0; i < CHILDREN; i++) { //
             pid_t pid = fork();
@@ -49,19 +55,19 @@ int main(int argc, char *argv[]) {
 
                 case 0:
                     // Proces potomny uruchamia inny program przy pomocy execlp
+                    sleep(i);
                     printf(" >> [Dziecko %d] PID: %d PPID: %d\n", i, getpid(), getppid());
                     execlp(path, path, argv[2], argv[3], (char *)NULL);
                     perror("execlp error");
                     _exit(4);
 
                 default:
-                    sleep(0.1); // Czekamy chwilę przed stworzeniem kolejnego dziecka
                   break;
             }
         }
 
-    printf("[Lider] >> PID: %d PPID: %d stworzył %d dzieci\n", getpid(), getppid(), CHILDREN);
-    printf("---------------------------------------------------------------\n");
+    //printf("[Lider] >> PID: %d PPID: %d stworzył %d dzieci\n", getpid(), getppid(), CHILDREN);
+    //printf("---------------------------------------------------------------\n");
 
     for(int i = 0; i < CHILDREN; i++) {
         int status;
@@ -79,12 +85,12 @@ int main(int argc, char *argv[]) {
           int sig = WTERMSIG(status);
           printf("[Lider]    --> Zabił go sygnał %d (%s)\n", sig, strsignal(sig));
         }
-        else if(WIFSIGNALED(status))
-          printf("[Lider    --> Zakończony normalnie (kod: %d)\n", WEXITSTATUS(status));
+        else if(WIFEXITED(status))
+          printf("[Lider]    --> Zakończony normalnie (kod: %d)\n", WEXITSTATUS(status));
     }
 
     //printf("[Lider] >> Wszystkie dzieci się zakończyły, kończę pracę\n");
-    printf("Proces macierzysty [Lider] zakończył pracę\n");
+    printf("Proces macierzysty [Lider] (PID: %d) zakończył pracę.\n", getpid());
 
     return 0;
 }

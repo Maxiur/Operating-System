@@ -31,6 +31,8 @@
 int main(int argc, char *argv[]) {
     assert(argc == 4 && "Zła liczba argumentów! Proszę podać program do uruchomienia!\n"); // Zabezpieczenie
 
+    // Ignorowanie sygnału, który sami wyślemy, by nie zabił procesu macierzystego
+    signal(atoi(argv[2]), SIG_IGN);
     // Jeśli argv[1] nie zawiera ścieżki (tzn. nie zaczyna się od './' to dodajemy ją)
     char path[256];
     snprintf(path, sizeof(path), "./%s", argv[1]);
@@ -56,12 +58,12 @@ int main(int argc, char *argv[]) {
 
     // Sprawdzenie czy proces potomny zyje
     if(kill(pid,0) == 0){
-        printf("[Macierzysty] Proces potomny (PID:%d) istnieje (może być zombie), więc wysyłam sygnał\n", pid);
+        printf("[Lider] Proces potomny (PID:%d) istnieje (może być zombie), więc wysyłam sygnał\n", pid);
         sleep(2);
         kill(pid, atoi(argv[2])); // wysłanie sygnału podanego przez użytkownika
         }
      else
-        perror("[Macierzysty] Proces nie istnieje");
+        perror("[Lider] Proces nie istnieje");
 
        int status;
        if (wait(&status) == -1) {
@@ -69,11 +71,11 @@ int main(int argc, char *argv[]) {
     		exit(1);
 		}
        else {
-    		printf("[Macierzysty] Proces potomny (PID:%d) zakonczyl zycie\n", pid);
+    		printf("[Lider] Proces potomny (PID:%d) zakonczyl zycie\n", pid);
     		if(WIFSIGNALED(status))
         	{
                   sleep(1);
-                  printf("[Macierzysty] >> Zabił go sygnał %d (%s)\n", WTERMSIG(status), strsignal(WTERMSIG(status)));
+                  printf("[Lider] >> Zabił go sygnał %d (%s)\n", WTERMSIG(status), strsignal(WTERMSIG(status)));
             }
 		}
 

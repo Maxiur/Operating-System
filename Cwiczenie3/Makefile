@@ -25,6 +25,9 @@ C_LEADER = 3c_leader.c
 C_LEADER_OBJ = 3c_leader.o
 C_LEADER_EXE = program_leader
 
+SIG ?= 2
+TRYB ?= D
+
 # Reguła główna
 all: $(A_EXE) $(B_EXE) $(C_LEADER_EXE) $(C_EXE)
 
@@ -61,20 +64,20 @@ clean:
 
 # Uruchomienie pliku
 .PHONY: run_a
-run_a: $(A_EXE))
-	./$(A_EXE)
+run_a: $(A_EXE)
+	./$(A_EXE) $(SIG) $(TRYB)
 
 .PHONY: run_b
 run_b: $(B_EXE)
-	./$(B_EXE) ./$(A_EXE)
+	./$(B_EXE) $(A_EXE) $(SIG) $(TRYB)
 
 .PHONY: run_c
 run_c: $(C_EXE) $(A_EXE) $(C_LEADER_EXE)
-	./$(C_EXE) $(C_LEADER_EXE) $(A_EXE) 2 D
+	./$(C_EXE) $(C_LEADER_EXE) $(A_EXE) $(SIG) $(TRYB)
 
 .PHONY: run_leader
 run_leader: $(C_LEADER_EXE) $(A_EXE)
-	./$(C_LEADER_EXE) $(A_EXE)
+	./$(C_LEADER_EXE) $(A_EXE) $(SIG) $(TRYB)
 
 # Pakowanie i archiwizacja
 .PHONY: clean

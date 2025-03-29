@@ -39,28 +39,28 @@ int main(int argc, char *argv[]){
 
     char opcja = toupper(argv[2][0]); // argv[2][n] czyta n - ty znak z napisu
 
-    // Konfiguracji reakcji na sygnał
+    // Konfiguracja reakcji na sygnał
     switch (opcja) {
         case 'D':
             if (signal(sig, SIG_DFL) == SIG_ERR) {
                 perror("Funkcja signal ma problem z ustawieniem domyślnej obsługi sygnału");
                 exit(1);
             }
-        printf("[Tryb Domyślny] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
+        printf("~[Tryb Domyślny] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
         break;
         case 'I':
             if (signal(sig, SIG_IGN) == SIG_ERR) {
                 perror("Funkcja signal ma problem z ignorowaniem sygnału");
                 exit(1);
             }
-        printf("[Tryb Ignorowania] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
+        printf("~[Tryb Ignorowania] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
         break;
         case 'P':
             if (signal(sig, staff) == SIG_ERR) {
                 perror("Funkcja signal ma problem przy ustawianiu własnej obsługi sygnału");
                 exit(1);
             }
-        printf("[Tryb Przechwycenia] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
+        printf("~[Tryb Przechwycenia] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
         break;
         default:
             printf("Niezdefiniowana opcja! Proszę podać D, I lub P\n");
@@ -68,6 +68,7 @@ int main(int argc, char *argv[]){
     }
 
     printf("Czekam na sygnał %d (%s)...\n", sig, strsignal(sig));
+    sleep(1);
 
     while (1){
         pause();
