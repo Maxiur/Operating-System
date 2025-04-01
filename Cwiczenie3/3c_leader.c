@@ -86,7 +86,8 @@ int main(int argc, char *argv[]) {
           printf("[Lider]    --> Zabił go sygnał %d (%s)\n", sig, strsignal(sig));
         }
         else if(WIFEXITED(status))
-          printf("[Lider]    --> Zakończony normalnie (kod: %d)\n", WEXITSTATUS(status));
+          printf("[Lider]    --> Zakończony normalnie (kod: %d)\n", status);
+
     }
 
     //printf("[Lider] >> Wszystkie dzieci się zakończyły, kończę pracę\n");

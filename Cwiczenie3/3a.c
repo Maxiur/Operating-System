@@ -25,6 +25,7 @@
 void staff(int sig) {
     printf("[OBSŁUGA] >> Przechwycono sygnał numer: %d (%s)\n", sig, strsignal(sig));
     sleep(1);
+    exit(1);
 }
 
 int main(int argc, char *argv[]){
@@ -46,21 +47,21 @@ int main(int argc, char *argv[]){
                 perror("Funkcja signal ma problem z ustawieniem domyślnej obsługi sygnału");
                 exit(1);
             }
-        printf("~[Tryb Domyślny] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
+        printf("~[Tryb Domyślny] Proces oczekuje sygnału %d (%s), PID: %d\n", sig, strsignal(sig), getpid());
         break;
         case 'I':
             if (signal(sig, SIG_IGN) == SIG_ERR) {
                 perror("Funkcja signal ma problem z ignorowaniem sygnału");
                 exit(1);
             }
-        printf("~[Tryb Ignorowania] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
+        printf("~[Tryb Ignorowania] Proces będzie ignorować sygnał %d (%s), PID: %d\n", sig, strsignal(sig), getpid());
         break;
         case 'P':
             if (signal(sig, staff) == SIG_ERR) {
                 perror("Funkcja signal ma problem przy ustawianiu własnej obsługi sygnału");
                 exit(1);
             }
-        printf("~[Tryb Przechwycenia] Wysyłam sygnał %d do procesu o PID: %d\n", sig, getpid());
+        printf("~[Tryb Przechwycenia] Proces będzie przechwytywać sygnał %d (%s), PID: %d\n", sig, strsignal(sig), getpid());
         break;
         default:
             printf("Niezdefiniowana opcja! Proszę podać D, I lub P\n");
@@ -68,10 +69,12 @@ int main(int argc, char *argv[]){
     }
 
     printf("Czekam na sygnał %d (%s)...\n", sig, strsignal(sig));
+
     sleep(1);
 
-    while (1){
-        pause();
+    if(pause() == -1 ){;
+        perror("pause error");
+        exit(1);
     }
 
     return 0;
