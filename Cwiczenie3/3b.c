@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     		if(WIFSIGNALED(status))
         	{
                   sleep(1);
-                  printf("[Lider] >> Zabił go sygnał %d (%s)\n", WTERMSIG(status), strsignal(WTERMSIG(status)));
+                  printf("[Lider] >> Zabił go sygnał %d (%s) (kod zakonczenia: %d)\n", WTERMSIG(status), strsignal(WTERMSIG(status)), status);
             }
 		}
 

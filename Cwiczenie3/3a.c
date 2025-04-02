@@ -72,10 +72,7 @@ int main(int argc, char *argv[]){
 
     sleep(1);
 
-    if(pause() == -1 ){;
-        perror("pause error");
-        exit(1);
-    }
+    pause();
 
     return 0;
  }
