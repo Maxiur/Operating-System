@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 
         if(WIFSIGNALED(status)) {
           int sig = WTERMSIG(status);
-          printf("[Lider]    --> Zabił go sygnał %d (%s)\n", sig, strsignal(sig));
+          printf("[Lider]    --> Zabił go sygnał %d (%s) (kod: %d)\n", sig, strsignal(sig),WEXITSTATUS(status));
         }
         else if(WIFEXITED(status))
           printf("[Lider]    --> Zakończony normalnie (kod: %d)\n", status);
