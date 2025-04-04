@@ -29,7 +29,7 @@ all: $(TARGET)
 # Czyszczenie
 .PHONY: clean
 clean:
-	rm -f *.o  *~ *.a *.so *.x core core* a.out; rm -rf $(TARGET) $(OUTPUT)
+	rm -f *.o  *~ *.a *.so *.x core core* a.out; rm -rf $(TARGET)
 
 # Uruchomienie pliku
 .PHONY: run
