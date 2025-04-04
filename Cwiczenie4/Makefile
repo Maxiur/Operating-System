@@ -13,8 +13,8 @@ MAIN_NAME = 4
 SRC_OBJS = $(MAIN_NAME).c
 OBJS = $(MAIN_NAME).o
 TARGET = producent_konsument
-INPUT = input.txt
-OUTPUT = output.txt
+INPUT ?= input.txt
+OUTPUT ?= output.txt
 
 # Reguła główna
 $(TARGET): $(OBJS)
@@ -29,11 +29,11 @@ all: $(TARGET)
 # Czyszczenie
 .PHONY: clean
 clean:
-	rm -f *.o  *~ *.a *.so *.x core core* a.out; rm -rf $(TARGET)
+	rm -f *.o  *~ *.a *.so *.x core core* a.out; rm -rf $(TARGET) $(OUTPUT)
 
 # Uruchomienie pliku
 .PHONY: run
-run: $(TARGET) $(INPUT) $(OUTPUT)
+run: $(TARGET)
 	./$(TARGET) $(INPUT) $(OUTPUT)
 	@echo "Sprawdzenie zgodności plików..."
 	diff -s $(INPUT) $(OUTPUT)
