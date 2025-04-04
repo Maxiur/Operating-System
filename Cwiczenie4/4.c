@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
             error_message("close pipe error");
         }
 
-       int output = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+       int output = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
        if(output == -1) {
          error_message("open output error");
        }
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
            error_message("close pipe error");
          }
 
-         int input = open("input.txt", O_RDONLY);
+         int input = open(argv[1], O_RDONLY);
          if(input == -1) {
            error_message("open input error");
            }
