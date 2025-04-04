@@ -35,6 +35,8 @@ clean:
 .PHONY: run
 run: $(TARGET) $(INPUT) $(OUTPUT)
 	./$(TARGET) $(INPUT) $(OUTPUT)
+	@echo "Sprawdzenie zgodności plików..."
+	diff -s $(INPUT) $(OUTPUT)
 
 
 # Pakowanie i archiwizacja
