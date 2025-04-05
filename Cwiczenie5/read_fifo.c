@@ -17,7 +17,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define BUF_SIZE 64 // rozmiar bufora (liczba bajtów na raz)
+#define BUF_SIZE 80 // rozmiar bufora (liczba bajtów na raz)
 
 void error_message(const char* msg)
 {
@@ -57,8 +57,10 @@ int main(int argc, char* argv[])
 
         printf("\n\033[34m[Konsument]\033[0m Odczytano %ld bajtów:\n", bytes);
         write(STDOUT_FILENO, buf, bytes);
+        printf("\n------------------------------------------------\n");
+        fflush(stdout);
 
-        sleep(rand() % 2); // losowy czas
+        sleep((rand() % 2 + 1)); // losowy czas
     }
     if (bytes == -1)
     {

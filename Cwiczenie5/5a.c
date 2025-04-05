@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define BUF_SIZE 64 // rozmiar bufora (liczba bajtów na raz)
+const char* fifo_path_global = NULL;
 
 void error_message(const char* msg)
 {
@@ -32,10 +32,9 @@ void error_message(const char* msg)
     exit(1);
 }
 
-void clean_fifo(const char* fifo_path)
+void clean_fifo()
 {
-
-    if (unlink(fifo_path) == -1)
+    if (unlink(fifo_path_global) == -1)
     {
         error_message("unlink fifo error");
     }
@@ -50,13 +49,14 @@ int main(int argc, char* argv[])
     }
 
     const char* fifo_path = argv[3];
+    fifo_path_global = fifo_path;
     int fifo = mkfifo(fifo_path, 0644);
     if (fifo == -1)
     {
         error_message("mkfifo error");
     }
 
-    if (atexit(clean_fifo(fifo_path)) != 0)
+    if (atexit(clean_fifo) != 0)
     {
         error_message("atexit error");
     }
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
         error_message("fork error");
 
     case 0:
-        execlp("./read_fifo", "./read_fifo", argv[2], fifo_path, char *(NULL));
+        execlp("./read_fifo", "./read_fifo", argv[2], fifo_path, (char*)NULL);
         perror("execlp error");
         _exit(1);
     }
@@ -77,15 +77,15 @@ int main(int argc, char* argv[])
     switch (fork())
     {
     case -1:
-            error_message("fork error");
+        error_message("fork error");
 
     case 0:
-        execlp("./write_fifo", "./write_fifo", argv[1], fifo_path, char *(NULL));
+        execlp("./write_fifo", "./write_fifo", argv[1], fifo_path, (char*)NULL);
         perror("execlp error");
         _exit(1);
     }
 
-    if (wait(NULL) == -1);
+    if (wait(NULL) == -1)
     {
         error_message("wait error");
     }

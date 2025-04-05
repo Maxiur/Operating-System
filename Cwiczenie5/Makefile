@@ -1,5 +1,4 @@
-.SUFFIXES: .c .cpp .o .x .h
-SYSNAME = $(shell uname -s)
+.SUFFIXES: .c .o .x .h
 
 # Kompilator
 CC = gcc
@@ -8,53 +7,68 @@ CFLAGS = -Wall -g -pedantic -std=c99
 # Nazwa katalogu
 PARENT_DIR = $(notdir $(CURDIR))
 
-# Pliki wynikowe
-MAIN_NAME = 4
-SRC_OBJS = $(MAIN_NAME).c
-OBJS = $(MAIN_NAME).o
-TARGET = producent_konsument
+# Nazwy plików
+MAIN_SRC = 5a.c
+MAIN_OBJ = 5a.o
+MAIN_EXE = producent_konsument
+
+WRITE_SRC = write_fifo.c
+WRITE_OBJ = write_fifo.o
+WRITE_EXE = write_fifo
+
+READ_SRC = read_fifo.c
+READ_OBJ = read_fifo.o
+READ_EXE = read_fifo
+
+# Pliki tekstowe oraz FIFO
 INPUT ?= input.txt
 OUTPUT ?= output.txt
+FIFO_PATH = temp_fifo
 
-# Reguła główna
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
+# Domyślny cel
+all: $(MAIN_EXE) $(WRITE_EXE) $(READ_EXE)
 
-# Kompilacja plików obiektowych
-$(OBJS): $(SRC_OBJS)
+# Kompilacja plików .c do .o
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-all: $(TARGET)
+# Budowanie plików wykonywalnych
+$(MAIN_EXE): $(MAIN_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(WRITE_EXE): $(WRITE_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(READ_EXE): $(READ_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
+
+# Uruchomienie
+.PHONY: run
+run: all
+	./$(MAIN_EXE) $(INPUT) $(OUTPUT) $(FIFO_PATH)
+	@echo "\nSprawdzenie zgodności plików:"
+	diff -s $(INPUT) $(OUTPUT)
 
 # Czyszczenie
 .PHONY: clean
 clean:
-	rm -f *.o  *~ *.a *.so *.x core core* a.out; rm -rf $(TARGET) $(OUTPUT)
+	rm -f *.o *~ *.x core core* a.out $(MAIN_EXE) $(WRITE_EXE) $(READ_EXE) $(OUTPUT)
+	rm -rf $(FIFO_PATH)
 
-# Uruchomienie pliku
-.PHONY: run
-run: $(TARGET)
-	./$(TARGET) $(INPUT) $(OUTPUT)
-	@echo "Sprawdzenie zgodności plików..."
-	diff -s $(INPUT) $(OUTPUT)
-
-
-# Pakowanie i archiwizacja
-.PHONY: clean
+# Archiwizacja katalogu
+.PHONY: tar
 tar: clean
 	(cd .. && tar cvzf $(PARENT_DIR).tar.gz $(PARENT_DIR) && ls -altr)
 
-# Dostepne komendy
+# Pomoc
 .PHONY: help
 help:
 	@echo "----------------------------------------------------"
-	@echo ""
-	@echo "Dostępne cele:"
-	@echo "  make             - Kompilacja i linkowanie plików"
-	@echo "  make run         - Uruchomienie programu z danymi wejściowymi"
-	@echo "  make clean       - Usunięcie plików obiektowych i programu"
-	@echo "  make tar         - Spakowanie katalogu do archiwum .tar.gz"
+	@echo " Dostępne cele:"
+	@echo "  make             - Kompilacja wszystkich programów"
+	@echo "  make run         - Uruchomienie programu z input/output/FIFO"
+	@echo "  make clean       - Usunięcie plików tymczasowych i FIFO"
+	@echo "  make tar         - Spakowanie katalogu do .tar.gz"
 	@echo "  make help        - Wyświetlenie tej pomocy"
-	@echo "  make run PROGRAM=./nazwa_programu - uruchamia z własnym programem"
-	@echo ""
 	@echo "----------------------------------------------------"
+
