@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
 
 const char* fifo_path_global = NULL;
 
@@ -40,6 +41,17 @@ void clean_fifo()
     }
 }
 
+void signal_handler(int sig)
+{
+    if (sig == SIGINT)
+    {
+        printf("\nOtrzymano sygnał SIGINT. Kończę program i usuwam Potok FIFO.\n");
+        clean_fifo();
+        _exit(1); // Kończenie programu bez wywoływania atexit
+    }
+}
+
+
 int main(int argc, char* argv[])
 {
     if (argc != 4)
@@ -50,6 +62,13 @@ int main(int argc, char* argv[])
 
     const char* fifo_path = argv[3];
     fifo_path_global = fifo_path;
+
+    // Rejestracja sygnału SIGINT
+    if (signal(SIGINT, signal_handler) == SIG_ERR)
+    {
+        error_message("signal error");
+    }
+
     int fifo = mkfifo(fifo_path, 0644);
     if (fifo == -1)
     {
