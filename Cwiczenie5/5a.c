@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 {
     if (argc != 4)
     {
-        fprintf(stderr, "Za mało argumentów! Proszę wywołać: ./%s <output> <input> <fifo_path> \n", argv[0]);
+        fprintf(stderr, "Za mało argumentów! Proszę wywołać: %s <output> <input> <fifo_path> \n", argv[0]);
         exit(1);
     }
 

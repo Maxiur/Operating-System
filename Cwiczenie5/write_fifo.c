@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 {
     if (argc != 3)
     {
-        fprintf(stderr, "Za mało argumentów! Proszę wywołać: ./%s <input> <fifo_path> \n", argv[0]);
+        fprintf(stderr, "Za mało argumentów! Proszę wywołać: %s <input> <fifo_path> \n", argv[0]);
         exit(1);
     }
 
@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
         }
 
         printf("\033[31m[Producent]\033[0m Zapisano %ld bajtów: \n", bytes);
-        write(STDOUT_FILENO, buf, bytes);
         fflush(stdout);
+        write(STDOUT_FILENO, buf, bytes);
 
         sleep((rand() % 2 + 1)); // losowy czas
     }

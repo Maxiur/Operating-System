@@ -23,7 +23,8 @@ READ_EXE = read_fifo
 # Pliki tekstowe oraz FIFO
 INPUT ?= input.txt
 OUTPUT ?= output.txt
-FIFO_PATH = temp_fifo
+FIFO = mojfifo
+FIFO_PATH ?= ./temp/$(FIFO)
 
 # Domyślny cel
 all: $(MAIN_EXE) $(WRITE_EXE) $(READ_EXE)
@@ -42,18 +43,35 @@ $(WRITE_EXE): $(WRITE_OBJ)
 $(READ_EXE): $(READ_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 
+# Tworzenie FIFO z powłoki
+mkfifo:
+	@echo "Tworzę potok FIFO: $(FIFO)"
+	-mkfifo $(FIFO)
 # Uruchomienie
 .PHONY: run
 run: all
+	@echo "Tworzenie katalogu temp/ (jeśli nie istnieje)..."
+	mkdir -p temp
 	./$(MAIN_EXE) $(INPUT) $(OUTPUT) $(FIFO_PATH)
 	@echo "\nSprawdzenie zgodności plików:"
+	diff -s $(INPUT) $(OUTPUT)
+
+.PHONY: run_b
+run_b: mkfifo
+	@echo "Uruchamiam Producenta i Konsumenta w xterm..."
+	xterm -hold -title PRODUCENT -e ./$(WRITE_EXE) $(INPUT) $(FIFO) &
+	xterm -hold -title KONSUMENT -e ./$(READ_EXE) $(OUTPUT) $(FIFO)
+
+# Sprawdzenie zgodności plików
+diff:
+	@echo "Sprawdzam zgodność plików:"
 	diff -s $(INPUT) $(OUTPUT)
 
 # Czyszczenie
 .PHONY: clean
 clean:
-	rm -f *.o *~ *.x core core* a.out $(MAIN_EXE) $(WRITE_EXE) $(READ_EXE) $(OUTPUT)
-	rm -rf $(FIFO_PATH)
+	rm -f *.o *~ *.x core core* a.out $(MAIN_EXE) $(WRITE_EXE) $(READ_EXE) $(OUTPUT) $(FIFO)
+	rm -rf temp
 
 # Archiwizacja katalogu
 .PHONY: tar
