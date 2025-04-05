@@ -57,10 +57,12 @@ run: all
 	diff -s $(INPUT) $(OUTPUT)
 
 .PHONY: run_b
-run_b: mkfifo
+run_b: $(WRITE_EXE) $(READ_EXE) mkfifo
 	@echo "Uruchamiam Producenta i Konsumenta w xterm..."
 	xterm -hold -title PRODUCENT -e ./$(WRITE_EXE) $(INPUT) $(FIFO) &
 	xterm -hold -title KONSUMENT -e ./$(READ_EXE) $(OUTPUT) $(FIFO)
+	@echo "\nSprawdzenie zgodności plików:"
+	diff -s $(INPUT) $(OUTPUT)
 
 # Sprawdzenie zgodności plików
 diff:
@@ -83,10 +85,14 @@ tar: clean
 help:
 	@echo "----------------------------------------------------"
 	@echo " Dostępne cele:"
-	@echo "  make             - Kompilacja wszystkich programów"
-	@echo "  make run         - Uruchomienie programu z input/output/FIFO"
-	@echo "  make clean       - Usunięcie plików tymczasowych i FIFO"
-	@echo "  make tar         - Spakowanie katalogu do .tar.gz"
+	@echo "  make             - Kompilacja wszystkich programów (5a, write_fifo, read_fifo)"
+	@echo "  make run         - Uruchomienie wersji (a): FIFO tworzony w programie 5a"
+	@echo "  make run_b       - Uruchomienie wersji (b): FIFO z linii komend, xterm Producent/Konsument"
+	@echo "  make diff        - Porównanie input.txt i output.txt (diff -s)"
+	@echo "  make mkfifo      - Ręczne utworzenie FIFO (mojfifo)"
+	@echo "  make clean       - Usunięcie plików wynikowych, FIFO i katalogu temp/"
+	@echo "  make tar         - Spakowanie katalogu do cwiczenie5.tar.gz"
 	@echo "  make help        - Wyświetlenie tej pomocy"
 	@echo "----------------------------------------------------"
+
 

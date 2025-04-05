@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
 #define BUF_SIZE 80 // rozmiar bufora (liczba bajtów na raz)
 
 void error_message(const char* msg)
@@ -55,7 +56,7 @@ int main(int argc, char* argv[])
             error_message("write output error");
         }
 
-        printf("\033[31m[Producent]\033[0m Zapisano %ld bajtów: \n", bytes);
+        printf("\n\033[31m[Producent]\033[0m Zapisano %ld bajtów: \n", bytes);
         fflush(stdout);
         write(STDOUT_FILENO, buf, bytes);
 
