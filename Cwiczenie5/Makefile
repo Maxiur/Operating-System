@@ -61,8 +61,11 @@ run_b: $(WRITE_EXE) $(READ_EXE) mkfifo
 	@echo "Uruchamiam Producenta i Konsumenta w xterm..."
 	xterm -hold -title PRODUCENT -e ./$(WRITE_EXE) $(INPUT) $(FIFO) &
 	xterm -hold -title KONSUMENT -e ./$(READ_EXE) $(OUTPUT) $(FIFO)
+	wait
 	@echo "\nSprawdzenie zgodności plików:"
 	diff -s $(INPUT) $(OUTPUT)
+	@echo "\nUsuwam FIFO..."
+	rm -f $(FIFO)
 
 # Sprawdzenie zgodności plików
 diff:

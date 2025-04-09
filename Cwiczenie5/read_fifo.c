@@ -17,7 +17,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define BUF_SIZE 80 // rozmiar bufora (liczba bajtów na raz)
+#define BUF_SIZE 60 // rozmiar bufora (liczba bajtów na raz)
 
 void error_message(const char* msg)
 {

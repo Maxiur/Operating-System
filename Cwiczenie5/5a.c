@@ -104,10 +104,19 @@ int main(int argc, char* argv[])
         _exit(1);
     }
 
-    if (wait(NULL) == -1)
+    // Jeśli porcja bitów, które pobiera potok, różni się między Producentem, a Konsumentem
+    // to może się zdarzyć, że Producent zakończy się przed Konsumentem i przejdzie nam przez wait() i zakończy program
+    // kiedy to Kosument nadal pobiera dane. // Można zrobić to po prostu dwoma wait(NULL).
+
+    // Czeka na pierwsze dziecko oraz drugie dziecko
+    for(int i = 0; i < 2; i++)
     {
-        error_message("wait error");
+        if (wait(NULL) == -1)
+        {
+            error_message("wait error");
+        }
     }
+
     printf("\n\033[32m[Producent]\033[0m Proces Producenta zakończony.\n");
     printf("\033[32m[Konsument]\033[0m Proces Konsumenta zakończony.\n");
     printf("Procesy zakończone. Usuwam FIFO.\n");
