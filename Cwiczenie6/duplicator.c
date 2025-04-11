@@ -6,6 +6,16 @@ void cleanup() {
   CheckError(my_sem_unlink(sem_name));
 }
 
+void signal_handler(int sig)
+{
+     if (sig == SIGINT)
+     {
+          printf("\nOtrzymano sygnał SIGINT. Kończę program i usuwam Semafor.\n");
+          cleanup();
+          _exit(1); // Kończenie programu bez wywoływania atexit
+     }
+}
+
 int main(int argc, char *argv[]) {
      if (argc != 4)
      {
@@ -14,6 +24,11 @@ int main(int argc, char *argv[]) {
      }
 
      atexit(cleanup);
+
+     if(signal(SIGINT, signal_handler) == SIG_ERR) {
+          perror("signal error");
+          exit(1);
+     }
 
      int critical_sections = atoi(argv[3]);
      int number_of_processes = atoi(argv[2]);
@@ -59,11 +74,10 @@ int main(int argc, char *argv[]) {
      int final_value = atoi(read_buf);
      int expected_value = critical_sections * number_of_processes;
 
-     printf("\n numer.txt = %d, oczekiwano %d\n", final_value, expected_value);
      if (final_value == expected_value)
-          printf("✅ \033[32mWszystko OK!\033[0m Ostateczna wartość: %d, oczekiwana wartość: %d\n", final_value, expected_value);
+          printf("✅  \033[32mWszystko OK!\033[0m Ostateczna wartość: %d, oczekiwana wartość: %d\n", final_value, expected_value);
      else
-          printf("❌ \033[31mBłąd!\033[0m Ostateczna wartość: %d, oczekiwana wartość: %d\n", final_value, expected_value);
+          printf("❌  \033[31mBłąd!\033[0m Ostateczna wartość: %d, oczekiwana wartość: %d\n", final_value, expected_value);
 
 
      return 0;

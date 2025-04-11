@@ -17,7 +17,6 @@ int main(int argc, char *argv[]) {
 
     int value;
     for(int i = 0; i < critical_sections; i++) {
-         printf("-------------------------------------------------------------------------------------------------\n");
          // --------------------------------------Sekcja Prywatna-------------------------------------------------
          // ------------------------------------------------------------------------------------------------------
          CheckError(my_sem_get_value(my_sem, &value));
@@ -58,8 +57,7 @@ int main(int argc, char *argv[]) {
          // ------------------------------------------------------------------------------------------------------
          CheckError(my_sem_post(my_sem));
          CheckError(my_sem_get_value(my_sem, &value));
-         printf("PID: %d, Po wyjściu z sekcji krytycznej (i = %d), semafor = %d\n", getpid(), i, value);
-         printf("-------------------------------------------------------------------------------------------------\n");
+         printf("PID: %d, Po wyjściu z sekcji krytycznej (i = %d), semafor = %d\n\n", getpid(), i, value);
     }
 
          return 0;

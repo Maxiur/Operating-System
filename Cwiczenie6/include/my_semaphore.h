@@ -1,5 +1,5 @@
-#IFNDEF MY_SEMAPHORE_H
-#DEFINE MY_SEMAPHORE_H
+#ifndef MY_SEMAPHORE_H
+#define MY_SEMAPHORE_H
 
 /*
     =======================================================
@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <signal.h>
 
 // Funkcja tworząca semafor
 sem_t* my_sem_init(const char* name, int init_value);

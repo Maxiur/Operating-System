@@ -10,8 +10,8 @@ SOURCE_DIR = ./source
 INCLUDE_DIR = ./include
 
 # Parametry uruchomienia
-PROCESS ?= 5
-SEKCJE ?= 10
+PROCESS ?= 4
+SEKCJE ?= 5
 
 # Pliki źródłowe i wynikowe
 SEM_SRC = $(SOURCE_DIR)/my_semaphore.c
@@ -43,13 +43,14 @@ $(WORKER_EXE): $(WORKER_OBJ) $(SEM_OBJ)
 # Uruchomienie
 .PHONY: run
 run: all
-	./$(DUPLICATOR_EXE) ./$(WORKER_EXE) 5 10
+	./$(DUPLICATOR_EXE) ./$(WORKER_EXE) $(PROCESS) $(SEKCJE)
 
 # Czyszczenie
 .PHONY: clean
 clean:
 	rm -f *.o *~ *.x core core* a.out \
 		$(DUPLICATOR_EXE) $(WORKER_EXE) numer.txt
+	rm -f $(SOURCE_DIR)/*.o
 
 # Archiwizacja
 .PHONY: tar
