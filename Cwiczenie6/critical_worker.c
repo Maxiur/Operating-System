@@ -17,10 +17,17 @@ int main(int argc, char *argv[]) {
 
     int value;
     for(int i = 0; i < critical_sections; i++) {
+
+         // Zmienne pomocnicze do wypisania komunikatu w całości
+         // snprintf zwraca liczbę zapisanych znaków w buforze
+         char message[1024];
+         int offset = 0;
          // --------------------------------------Sekcja Prywatna-------------------------------------------------
          // ------------------------------------------------------------------------------------------------------
          CheckError(my_sem_get_value(my_sem, &value));
-         printf("PID: %d, Sekcja Prywatna, przed sekcją krytyczną (i = %d), semafor = %d\n", getpid(), i, value);
+         offset += snprintf(message + offset, sizeof(message) - offset,
+         "PID: %d, Sekcja Prywatna, przed sekcją krytyczną (i = %d), semafor = %d\n",
+         getpid(), i, value);
          // Symulacja pracy wewnątrz sekcji prywatnej
          sleep(rand() % 2 + 1);
 
@@ -28,7 +35,9 @@ int main(int argc, char *argv[]) {
          // ------------------------------------------------------------------------------------------------------
          CheckError(my_sem_wait(my_sem));
          CheckError(my_sem_get_value(my_sem, &value));
-         printf("\tPID: %d, Sekcja Krytyczna (i = %d), semafor = %d\n", getpid(), i, value);
+         offset += snprintf(message + offset, sizeof(message) - offset,
+         "\tPID: %d, Sekcja Krytyczna (i = %d), semafor = %d\n",
+         getpid(), i, value);
 
          // Odczyt numer.txt
          int number = open("numer.txt", O_RDWR, 0644);
@@ -40,7 +49,8 @@ int main(int argc, char *argv[]) {
          CheckError(close(number) != -1);
          int current_value = atoi(read_buf);
 
-         printf("\tPID: %d, Odczytano z numer.txt: %d\n", getpid(), current_value);
+         offset += snprintf(message + offset, sizeof(message) - offset,
+         "\tPID: %d, Odczytano z numer.txt: %d\n", getpid(), current_value);
          // Losowy czas wewnątrz sekcji krytycznej
          sleep(rand() % 2 + 1);
 
@@ -57,7 +67,13 @@ int main(int argc, char *argv[]) {
          // ------------------------------------------------------------------------------------------------------
          CheckError(my_sem_post(my_sem));
          CheckError(my_sem_get_value(my_sem, &value));
-         printf("PID: %d, Po wyjściu z sekcji krytycznej (i = %d), semafor = %d\n\n", getpid(), i, value);
+         offset += snprintf(message + offset, sizeof(message) - offset,
+         "PID: %d, Po wyjściu z sekcji krytycznej (i = %d), semafor = %d\n\n",
+         getpid(), i, value);
+
+         // Wypisanie wiadomości
+         fputs(message, stdout);
+         fflush(stdout);
     }
 
          return 0;
