@@ -1,5 +1,5 @@
-#IFNDEF MY_SEPARATOR_H
-#DEFINE MY_SEPARATOR_H
+#IFNDEF MY_SEMAPHORE_H
+#DEFINE MY_SEMAPHORE_H
 
 /*
     =======================================================
@@ -12,7 +12,7 @@
         fprintf(stderr, "[ERROR] %s:%d (%s) -> CheckError argument: %s\n",             \
         __FILE__, __LINE__, __func__, #Arg);                                            \
         exit(EXIT_FAILURE);                                                              \
-}
+}                                                                                         \
 
 #include <stdio.h>
 #include <semaphore.h>
@@ -29,7 +29,7 @@ sem_t* my_sem_init(const char* name, int init_value);
 sem_t* my_sem_open(const char* name);
 
 // Funkcja zamykająca semafor
-sem_t* my_sem_close(sem_t* sem);
+int my_sem_close(sem_t* sem);
 
 // Funkcja usuwająca semafor
 int my_sem_unlink(const char* name);
@@ -43,5 +43,5 @@ int my_sem_post(sem_t* sem);
 // Funkcja sprawdzająca wartość semafora
 int my_sem_get_value(sem_t* sem, int *svalue);
 
-#endif // MY_SEPARATOR_H
+#endif // MY_SEMAPHORE
 

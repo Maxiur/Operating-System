@@ -18,42 +18,43 @@ sem_t* my_sem_open(const char* name) {
       return my_sem;
 }
 
-sem_t* my_sem_close(sem_t* sem) {
-  sem_t* my_sem = sem_close(sem);
+int my_sem_close(sem_t* sem) {
+  int my_sem = sem_close(sem);
   if(my_sem == -1) {
     perror("Sem close error");
-    return NULL;
+    return 0;
   }
-  return my_sem;
+  return 1;
 }
 
 int my_sem_unlink(const char* name) {
   if(sem_unlink(name) == -1) {
     perror("Sem unlink error");
-    return -1;
+    return 0;
   }
-  return 0;
+  return 1;
 }
 
 int my_sem_wait(sem_t* sem) {
   if(sem_wait(sem) == -1) {
     perror("Sem wait error");
-    return -1;
+    return 0;
   }
-  return 0;
+  return 1;
 }
 
 int my_sem_post(sem_t* sem) {
   if(sem_post(sem) == -1) {
     perror("Sem post error");
-    return -1;
+    return 0;
   }
+    return 1;
 }
 
 int my_sem_get_value(sem_t* sem, int *svalue) {
   if(sem_getvalue(sem, svalue) == -1) {
     perror("Sem get value error");
-    return -1;
+    return 0;
   }
-  return 0;
+  return 1;
 }
