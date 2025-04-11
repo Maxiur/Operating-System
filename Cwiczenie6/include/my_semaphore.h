@@ -1,6 +1,19 @@
 #IFNDEF MY_SEPARATOR_H
 #DEFINE MY_SEPARATOR_H
 
+/*
+    =======================================================
+    Makro CheckError: wskazuje lokalizację błędu, wypisuje nazwę
+    przekazywanego argumentu (#Arg) i kończy program.
+    =======================================================
+*/
+#define CheckError(Arg)                                                              \
+    if (!(Arg)) {                                                                     \
+        fprintf(stderr, "[ERROR] %s:%d (%s) -> CheckError argument: %s\n",             \
+        __FILE__, __LINE__, __func__, #Arg);                                            \
+        exit(EXIT_FAILURE);                                                              \
+}
+
 #include <stdio.h>
 #include <semaphore.h>
 #include <fcntl.h>
@@ -12,6 +25,7 @@
 sem_t* my_sem_init(const char* name, int init_value);
 
 // Funkcja otwierająca semafor
+// (Już utworzonego)
 sem_t* my_sem_open(const char* name);
 
 // Funkcja zamykająca semafor
