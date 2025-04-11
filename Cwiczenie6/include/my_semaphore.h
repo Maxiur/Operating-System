@@ -18,8 +18,12 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 // Funkcja tworząca semafor
 sem_t* my_sem_init(const char* name, int init_value);
