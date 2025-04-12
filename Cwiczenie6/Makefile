@@ -10,8 +10,8 @@ SOURCE_DIR = ./source
 INCLUDE_DIR = ./include
 
 # Parametry uruchomienia
-PROCESS ?= 4
-SEKCJE ?= 5
+PROCESS ?= 5
+SEKCJE ?= 10
 
 # Pliki źródłowe i wynikowe
 SEM_SRC = $(SOURCE_DIR)/my_semaphore.c

@@ -1,3 +1,14 @@
+//-------------------------------------------------------------
+// Autor: Mateusz Kamiński                   Kraków, 12.04.2025
+//
+// CWICZENIE 6 - Wzajemne wykluczanie dla procesów
+// Program: critical_worker.c
+//
+// Proces realizujący zadane liczby sekcji krytycznych.
+// W sekcji krytycznej odczytuje, zwiększa i zapisuje
+// wartość w pliku numer.txt z użyciem semafora POSIX.
+// Wypisuje PID, wartość semafora i aktualny numer.
+
 #include "../include/my_semaphore.h"
 
 int main(int argc, char *argv[]) {

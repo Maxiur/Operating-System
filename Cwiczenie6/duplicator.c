@@ -1,3 +1,17 @@
+//-------------------------------------------------------------
+// Autor: Mateusz Kamiński                   Kraków, 12.04.2025
+//
+// CWICZENIE 6 - Wzajemne wykluczanie dla procesów
+// Program: duplicator.c
+//
+// Tworzy semafor nazwany POSIX, plik numer.txt z wartością 0,
+// uruchamia zadane procesy potomne (worker), a po ich zakończeniu
+// porównuje wartość końcową z oczekiwaną.
+// Semafor usuwany przez atexit() lub po sygnale SIGINT.
+//
+// Przykładowe uruchomienie: ./duplicator ./critical_worker 5 10
+
+
 #include "./include/my_semaphore.h"
 
 const char* sem_name = "/my_semaphore";
