@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <unistd.h>
 
 // Funkcja tworząca pamięć dzieloną
 int create_shared_memory(const char *name, size_t size);
@@ -24,7 +25,6 @@ void unmap_shared_memory(void* addr, size_t size);
 void close_shared_memory(int shm_fd);
 
 // Funkcja usuwająca pamięć dzieloną
-void unlink_shared_memory(const char *name);
-
+int unlink_shared_memory(const char *name);
 
 #endif // SHARED_MEMORY_H

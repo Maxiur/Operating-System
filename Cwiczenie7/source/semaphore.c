@@ -58,22 +58,3 @@ int my_sem_get_value(sem_t* sem, int *svalue) {
     }
     return 1;
 }
-
-sem_wait_status my_sem_wait_timeout(sem_t* sem, unsigned int timeout) {
-    struct timespec ts;
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-        perror("clock_gettime");
-        return SEM_WAIT_ERROR;
-    }
-    ts.tv_sec += timeout_sec;
-
-    int ret = sem_timedwait(sem, &ts);
-    if (ret == 0)
-        return SEM_WAIT_SUCCESS;
-      else if (errno == ETIMEDOUT)
-        return SEM_WAIT_TIMEOUT;
-      else {
-        perror("sem_timedwait");
-        return SEM_WAIT_ERROR;
-    }
-}

@@ -1,6 +1,18 @@
 #ifndef MY_SEMAPHORE_H
 #define MY_SEMAPHORE_H
 
+#include <stdio.h>
+#include <semaphore.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <signal.h>
+
 /*
     =======================================================
     Makro CheckError: wskazuje lokalizację błędu, wypisuje nazwę
@@ -13,18 +25,6 @@
         __FILE__, __LINE__, __func__, #Arg);                                            \
         exit(EXIT_FAILURE);                                                              \
 }                                                                                         \
-
-#include <stdio.h>
-#include <semaphore.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <signal.h>
 
 // Funkcja tworząca semafor
 sem_t* my_sem_init(const char* name, int init_value);
@@ -47,9 +47,6 @@ int my_sem_post(sem_t* sem);
 
 // Funkcja sprawdzająca wartość semafora
 int my_sem_get_value(sem_t* sem, int *svalue);
-
-// Funkcja oczekująca na semafor z timeoutem
-sem_wait_status wait_for_semaphore_with_timeout(sem_t* sem, unsigned int timeout)
 
 #endif // MY_SEMAPHORE
 

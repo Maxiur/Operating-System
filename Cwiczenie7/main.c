@@ -1,6 +1,6 @@
-#include "../include/my_semaphore.h"
-#include "../include/shared_memory.h"
-#include "../include/shared_buffer.h"
+#include "./include/my_semaphore.h"
+#include "./include/shared_memory.h"
+#include "./include/shared_buffer.h"
 
 #define PRODUCENT_NAME "./producent"
 #define KONSUMENT_NAME "./konsument"

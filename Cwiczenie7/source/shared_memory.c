@@ -1,4 +1,4 @@
-#include "../include/shared_memore.h"
+#include "../include/shared_memory.h"
 
 int create_shared_memory(const char *name, size_t size)
 {
@@ -56,9 +56,11 @@ void close_shared_memory(int shm_fd)
         perror("close error");
     }
 }
-void unlink_shared_memory(const char *name)
+int unlink_shared_memory(const char *name)
 {
     if (shm_unlink(name) == -1) {
         perror("shm_unlink error");
+        return 0;
     }
+    return 1;
 }
