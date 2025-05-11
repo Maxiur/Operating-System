@@ -1,1 +1,0 @@
-CMakeLists.txt not found in /home/maxiur/Desktop/Operating-System/Cwiczenie5 Select CMakeLists.txt
