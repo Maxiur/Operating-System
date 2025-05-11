@@ -1,12 +1,12 @@
 #ifndef SHARED_MEMORY_H
 #define SHARED_MEMORY_H
 
+#define _POSIX_C_SOURCE 200809L
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <unistd.h>
 
 // Funkcja tworząca pamięć dzieloną
