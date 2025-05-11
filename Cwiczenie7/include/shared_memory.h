@@ -1,13 +1,30 @@
 #ifndef SHARED_MEMORY_H
 #define SHARED_MEMORY_H
 
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
+// Funkcja tworząca pamięć dzieloną
 int create_shared_memory(const char *name, size_t size);
+
+// Funkcja otwierająca pamięć dzieloną
 int open_shared_memory(const char *name, size_t size);
+
+// Funkcja mapująca pamięć dzieloną do przestrzeni adresowej
 void* map_shared_memory(int shm_fd, size_t size);
+
+// Funkcja odmapowująca pamięć dzieloną
 void unmap_shared_memory(void* addr, size_t size);
+
+// Funkcja zamykająca deskryptor pamięci dzielonej
 void close_shared_memory(int shm_fd);
+
+// Funkcja usuwająca pamięć dzieloną
 void unlink_shared_memory(const char *name);
+
 
 #endif // SHARED_MEMORY_H

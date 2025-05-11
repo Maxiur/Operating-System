@@ -8,10 +8,10 @@
     =======================================================
 */
 #define CheckError(Arg)                                                              \
-if (!(Arg)) {                                                                     \
-fprintf(stderr, "[ERROR] %s:%d (%s) -> CheckError argument: %s\n",             \
-__FILE__, __LINE__, __func__, #Arg);                                            \
-exit(EXIT_FAILURE);                                                              \
+    if (!(Arg)) {                                                                     \
+        fprintf(stderr, "[ERROR] %s:%d (%s) -> CheckError argument: %s\n",             \
+        __FILE__, __LINE__, __func__, #Arg);                                            \
+        exit(EXIT_FAILURE);                                                              \
 }                                                                                         \
 
 #include <stdio.h>
@@ -48,6 +48,7 @@ int my_sem_post(sem_t* sem);
 // Funkcja sprawdzająca wartość semafora
 int my_sem_get_value(sem_t* sem, int *svalue);
 
+// Funkcja oczekująca na semafor z timeoutem
 sem_wait_status wait_for_semaphore_with_timeout(sem_t* sem, unsigned int timeout)
 
 #endif // MY_SEMAPHORE
