@@ -1,0 +1,40 @@
+#define N  // rozmiar bufora cyklicznego
+
+typedef struct { ... } Towar;
+Towar bufor[N];
+
+int wstaw = 0;
+int wyjmij = 0;
+
+// Semafory nazwane POSIX
+semaphore SEM_PUSTE = N;    // liczba wolnych miejsc
+semaphore SEM_PELNE = 0;    // liczba zajętych miejsc
+semaphore SEM_MUTEX = 1;    // semafor binarny dla sekcji krytycznej
+
+// Proces PRODUCENT
+while (1) {
+    Towar towar = PRODUKUJ();
+
+    P(SEM_PUSTE);           // czekaj, aż będzie miejsce
+    P(SEM_MUTEX);           // wejście do sekcji krytycznej
+
+    bufor[wstaw] = towar;
+    wstaw = (wstaw + 1) % N;
+
+    V(SEM_MUTEX);           // wyjście z sekcji krytycznej
+    V(SEM_PELNE);           // sygnalizuj, że bufor ma dane
+}
+
+// Proces KONSUMENT
+while (1) {
+    P(SEM_PELNE);           // czekaj na dane
+    P(SEM_MUTEX);           // wejście do sekcji krytycznej
+
+    Towar towar = bufor[wyjmij];
+    wyjmij = (wyjmij + 1) % N;
+
+    V(SEM_MUTEX);           // wyjście z sekcji krytycznej
+    V(SEM_PUSTE);           // zwolnij miejsce
+
+    KONSUMUJ(towar);
+}

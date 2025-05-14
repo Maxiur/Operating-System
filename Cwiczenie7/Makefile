@@ -1,73 +1,107 @@
-.SUFFIXES: .c .o .x .h
+#=============================================================================
+# Makefile do cwiczenia 7 - Producent-Konsument z pamiecia dzielona i semaforami
+#=============================================================================
 
-# Kompilator
+# Kompilator i flagi
 CC = gcc
-CFLAGS = -Wall -g -pedantic -std=c99 -I$(INCLUDE_DIR)
+CFLAGS = -Wall -g -pedantic -std=c99 -I./include
+LIB_DIR = ./lib
 
-# Katalogi
-PARENT_DIR  = $(notdir $(CURDIR))
-SOURCE_DIR  = ./source
+# Pliki zrodlowe
+SRC_DIR = ./source
 INCLUDE_DIR = ./include
+SRC_FILES = $(SRC_DIR)/semaphore.c $(SRC_DIR)/shared_memory.c
+OBJ_FILES = $(SRC_FILES:.c=.o)
 
-# Źródła biblioteczne
-LIB_SRC = $(SOURCE_DIR)/semaphore.c $(SOURCE_DIR)/shared_memory.c
-LIB_OBJ = $(LIB_SRC:.c=.o)
+# Nazwy bibliotek
+STATIC_LIB = $(LIB_DIR)/libmymodule.a
+SHARED_LIB = $(LIB_DIR)/libmymodule.so
 
-# Pliki główne
-MAIN_SRC = main.c
-PROD_SRC = producent.c
-KONS_SRC = konsument.c
+# Programy
+BINARIES = main producent konsument
 
-MAIN_OBJ = $(MAIN_SRC:.c=.o)
-PROD_OBJ = $(PROD_SRC:.c=.o)
-KONS_OBJ = $(KONS_SRC:.c=.o)
+# Linkowanie
+LDFLAGS_STATIC = -L$(LIB_DIR) -lmymodule -lrt -pthread
+LDFLAGS_SHARED = -L$(LIB_DIR) -lmymodule -Wl,-rpath,$(LIB_DIR) -lrt -pthread
 
-MAIN_EXE = main
-PROD_EXE = producent
-KONS_EXE = konsument
+#=============================================================================
+# Domyslny cel
+#=============================================================================
+all: static shared
 
-# Domyślny cel
-all: $(MAIN_EXE) $(PROD_EXE) $(KONS_EXE)
+#=============================================================================
+# Budowanie bibliotek
+#=============================================================================
+$(STATIC_LIB): $(OBJ_FILES)
+	mkdir -p $(LIB_DIR)
+	ar rcs $@ $^
 
-# Kompilacja plików .c do .o
-%.o: %.c $(INCLUDE_DIR)/shared_buffer.h
+$(SHARED_LIB): $(OBJ_FILES)
+	mkdir -p $(LIB_DIR)
+	$(CC) -shared -o $@ $^
+
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -fPIC -c $< -o $@
+
+#=============================================================================
+# Budowanie wersji statycznej
+#=============================================================================
+static: $(STATIC_LIB) main.o producent.o konsument.o
+	$(CC) $(CFLAGS) -o main main.o $(LDFLAGS_STATIC)
+	$(CC) $(CFLAGS) -o producent producent.o $(LDFLAGS_STATIC)
+	$(CC) $(CFLAGS) -o konsument konsument.o $(LDFLAGS_STATIC)
+
+#=============================================================================
+# Budowanie wersji dynamicznej
+#=============================================================================
+shared: $(SHARED_LIB) main.o producent.o konsument.o
+	$(CC) $(CFLAGS) -o main main.o $(LDFLAGS_SHARED)
+	$(CC) $(CFLAGS) -o producent producent.o $(LDFLAGS_SHARED)
+	$(CC) $(CFLAGS) -o konsument konsument.o $(LDFLAGS_SHARED)
+
+#=============================================================================
+# Kompilacja pojedynczych plikow
+#=============================================================================
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Budowanie programów
-$(MAIN_EXE): $(MAIN_OBJ) $(LIB_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+#=============================================================================
+# Uruchamianie
+#=============================================================================
+run_static: static
+	./main
 
-$(PROD_EXE): $(PROD_OBJ) $(LIB_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+run_shared: shared
+	LD_LIBRARY_PATH=$(LIB_DIR):$$LD_LIBRARY_PATH ./main
 
-$(KONS_EXE): $(KONS_OBJ) $(LIB_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
-
-# Uruchomienie programu głównego
-.PHONY: run
-run: all
-	./$(MAIN_EXE)
-
+#=============================================================================
 # Czyszczenie
-.PHONY: clean
+#=============================================================================
 clean:
-	rm -f *.o *~ core core.* a.out \
-		$(MAIN_EXE) $(PROD_EXE) $(KONS_EXE)
-	rm -f $(SOURCE_DIR)/*.o
+	rm -f *.o *.a *.so *.x *~ core core.* a.out
+	rm -f $(SRC_DIR)/*.o
+	rm -f $(BINARIES) $(DYNAMIC_BINARIES)
+	rm -f $(STATIC_LIB) $(SHARED_LIB)
+	rm -rf $(LIB_DIR)
 
-# Archiwizacja katalogu
-.PHONY: tar
+#=============================================================================
+# Archiwizacja
+#=============================================================================
 tar: clean
-	(cd .. && tar cvzf $(PARENT_DIR).tar.gz $(PARENT_DIR) && ls -altr)
+	(cd .. && tar czf Cwiczenie7.tar.gz Cwiczenie7)
 
+#=============================================================================
 # Pomoc
-.PHONY: help
+#=============================================================================
 help:
 	@echo "----------------------------------------------------"
-	@echo " Dostępne cele:"
-	@echo "  make              - Kompilacja wszystkich programów (main, producent, konsument)"
-	@echo "  make run          - Uruchomienie programu main"
-	@echo "  make clean        - Czyszczenie plików wynikowych"
-	@echo "  make tar          - Spakowanie katalogu"
-	@echo "  make help         - Wyświetlenie tej pomocy"
+	@echo " Dostepne cele:"
+	@echo "  make             - Kompilacja wersji statycznej i dynamicznej"
+	@echo "  make static      - Kompilacja tylko wersji statycznej (main, producent, konsument)"
+	@echo "  make shared      - Kompilacja tylko wersji dynamicznej (main, producent, konsument)"
+	@echo "  make run_static  - Uruchomienie programu z biblioteka statyczna"
+	@echo "  make run_shared  - Uruchomienie programu z biblioteka dynamiczna"
+	@echo "  make clean       - Usuniecie plikow posrednich i bibliotek"
+	@echo "  make tar         - Spakowanie katalogu do Cwiczenie7.tar.gz"
+	@echo "  make help        - Wyswietlenie tej pomocy"
 	@echo "----------------------------------------------------"

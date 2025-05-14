@@ -1,3 +1,26 @@
+/*
+============================================================================
+ Projekt:      Cwiczenie 7 – Producent-Konsument (pamięć dzielona + semafory)
+ Autor:        Mateusz Kamiński
+ Data:         14 maja 2025
+
+ Opis:
+ Program główny tworzy pamięć dzieloną i semafory, a następnie uruchamia
+ dwa procesy: producenta i konsumenta. Komunikacja odbywa się poprzez
+ bufor cykliczny w pamięci dzielonej synchronizowany semaforami POSIX.
+
+ Kompilacja i uruchomienie:
+
+ 1. Wersja statyczna:
+    $ make run_static
+
+ 2. Wersja dynamiczna (shared library):
+    $ make run_shared
+
+ ============================================================================
+*/
+
+
 #include "./include/my_semaphore.h"
 #include "./include/shared_memory.h"
 #include "./include/shared_buffer.h"
