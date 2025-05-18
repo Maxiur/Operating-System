@@ -20,13 +20,10 @@
  ============================================================================
 */
 
-
+#include "./include/CheckError.h"
 #include "./include/my_semaphore.h"
 #include "./include/shared_memory.h"
 #include "./include/shared_buffer.h"
-
-#define PRODUCENT_NAME "./producent"
-#define KONSUMENT_NAME "./konsument"
 
 void cleanup() {
     CheckError(my_sem_unlink(SEM_WRITE_TO_SHM));
@@ -43,8 +40,17 @@ void signal_handler(int sig)
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     atexit(cleanup);
+
+	if (argc < 5) {
+        fprintf(stderr, "Poprawne wywołanie: %s <producent> <konsument> <input> <output>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    const char* PRODUCENT_PATH = argv[1];
+    const char* KONSUMENT_PATH = argv[2];
+    const char* INPUT_FILE = argv[3];
+    const char* OUTPUT_FILE = argv[4];
 
     // Zmienne początkowe
     void* addr = NULL;
@@ -56,7 +62,7 @@ int main() {
     CheckError(signal(SIGINT, signal_handler) != SIG_ERR);
 
     // Utworzenie pamięci dzielonej
-    CheckError((shm_fd = create_shared_memory(SHM_NAME, SHM_SIZE)) != -1);
+    CheckError((shm_fd = create_shared_memory(SHM_NAME, SHM_SIZE)));
     CheckError((addr = map_shared_memory(shm_fd, SHM_SIZE)) != NULL);
 
     // Inicjalizacja wspólnego bufora
@@ -76,7 +82,7 @@ int main() {
             exit(EXIT_FAILURE);
 
         case 0:
-            execlp(PRODUCENT_NAME, PRODUCENT_NAME, (char*)NULL);
+            execlp(PRODUCENT_PATH, PRODUCENT_PATH, INPUT_FILE, (char*)NULL);
             perror("execlp error");
             exit(EXIT_FAILURE);
 
@@ -90,7 +96,7 @@ int main() {
             exit(EXIT_FAILURE);
 
         case 0:
-            execlp(KONSUMENT_NAME, KONSUMENT_NAME, (char*)NULL);
+            execlp(KONSUMENT_PATH, KONSUMENT_PATH, OUTPUT_FILE, (char*)NULL);
             perror("execlp error");
             exit(EXIT_FAILURE);
 
@@ -99,8 +105,12 @@ int main() {
     }
 
     // Oczekiwanie na zakończenie obu procesów
-    wait(NULL);
-    wait(NULL);
+   	for(int i = 0; i < 2; i++) {
+		if(wait(NULL) == -1) {
+			perror("wait error");
+			exit(EXIT_FAILURE);
+		}
+	}
 
     // atexit()
 

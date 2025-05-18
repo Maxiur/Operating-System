@@ -1,15 +1,13 @@
-#=============================================================================
-# Makefile do cwiczenia 7 - Producent-Konsument z pamiecia dzielona i semaforami
-#=============================================================================
-
 # Kompilator i flagi
 CC = gcc
 CFLAGS = -Wall -g -pedantic -std=c99 -I./include
 LIB_DIR = ./lib
 
-# Pliki zrodlowe
+# Ścieżki
 SRC_DIR = ./source
 INCLUDE_DIR = ./include
+
+# Pliki źródłowe
 SRC_FILES = $(SRC_DIR)/semaphore.c $(SRC_DIR)/shared_memory.c
 OBJ_FILES = $(SRC_FILES:.c=.o)
 
@@ -17,15 +15,21 @@ OBJ_FILES = $(SRC_FILES:.c=.o)
 STATIC_LIB = $(LIB_DIR)/libmymodule.a
 SHARED_LIB = $(LIB_DIR)/libmymodule.so
 
-# Programy
-BINARIES = main producent konsument
+# Programy binarne
+MAIN_NAME ?= ./main
+PRODUCENT_NAME ?= ./producent
+KONSUMENT_NAME ?= ./konsument
+
+# Pliki danych
+INPUT_FILE ?= input.txt
+OUTPUT_FILE ?= output.txt
 
 # Linkowanie
 LDFLAGS_STATIC = -L$(LIB_DIR) -lmymodule -lrt -pthread
 LDFLAGS_SHARED = -L$(LIB_DIR) -lmymodule -Wl,-rpath,$(LIB_DIR) -lrt -pthread
 
 #=============================================================================
-# Domyslny cel
+# Domyślny cel
 #=============================================================================
 all: static shared
 
@@ -47,32 +51,32 @@ $(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 # Budowanie wersji statycznej
 #=============================================================================
 static: $(STATIC_LIB) main.o producent.o konsument.o
-	$(CC) $(CFLAGS) -o main main.o $(LDFLAGS_STATIC)
-	$(CC) $(CFLAGS) -o producent producent.o $(LDFLAGS_STATIC)
-	$(CC) $(CFLAGS) -o konsument konsument.o $(LDFLAGS_STATIC)
+	$(CC) $(CFLAGS) -o $(MAIN_NAME) main.o $(LDFLAGS_STATIC)
+	$(CC) $(CFLAGS) -o $(PRODUCENT_NAME) producent.o $(LDFLAGS_STATIC)
+	$(CC) $(CFLAGS) -o $(KONSUMENT_NAME) konsument.o $(LDFLAGS_STATIC)
 
 #=============================================================================
 # Budowanie wersji dynamicznej
 #=============================================================================
 shared: $(SHARED_LIB) main.o producent.o konsument.o
-	$(CC) $(CFLAGS) -o main main.o $(LDFLAGS_SHARED)
-	$(CC) $(CFLAGS) -o producent producent.o $(LDFLAGS_SHARED)
-	$(CC) $(CFLAGS) -o konsument konsument.o $(LDFLAGS_SHARED)
+	$(CC) $(CFLAGS) -o $(MAIN_NAME) main.o $(LDFLAGS_SHARED)
+	$(CC) $(CFLAGS) -o $(PRODUCENT_NAME) producent.o $(LDFLAGS_SHARED)
+	$(CC) $(CFLAGS) -o $(KONSUMENT_NAME) konsument.o $(LDFLAGS_SHARED)
 
 #=============================================================================
-# Kompilacja pojedynczych plikow
+# Kompilacja plików .c
 #=============================================================================
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 #=============================================================================
-# Uruchamianie
+# Uruchomienie
 #=============================================================================
 run_static: static
-	./main
+	$(MAIN_NAME) $(PRODUCENT_NAME) $(KONSUMENT_NAME) $(INPUT_FILE) $(OUTPUT_FILE)
 
 run_shared: shared
-	LD_LIBRARY_PATH=$(LIB_DIR):$$LD_LIBRARY_PATH ./main
+	LD_LIBRARY_PATH=$(LIB_DIR):$$LD_LIBRARY_PATH $(MAIN_NAME) $(PRODUCENT_NAME) $(KONSUMENT_NAME) $(INPUT_FILE) $(OUTPUT_FILE)
 
 #=============================================================================
 # Czyszczenie
@@ -80,7 +84,7 @@ run_shared: shared
 clean:
 	rm -f *.o *.a *.so *.x *~ core core.* a.out
 	rm -f $(SRC_DIR)/*.o
-	rm -f $(BINARIES) $(DYNAMIC_BINARIES)
+	rm -f $(MAIN_NAME) $(PRODUCENT_NAME) $(KONSUMENT_NAME) $(OUTPUT_FILE)
 	rm -f $(STATIC_LIB) $(SHARED_LIB)
 	rm -rf $(LIB_DIR)
 
@@ -95,13 +99,19 @@ tar: clean
 #=============================================================================
 help:
 	@echo "----------------------------------------------------"
-	@echo " Dostepne cele:"
+	@echo " Dostępne cele:"
 	@echo "  make             - Kompilacja wersji statycznej i dynamicznej"
-	@echo "  make static      - Kompilacja tylko wersji statycznej (main, producent, konsument)"
-	@echo "  make shared      - Kompilacja tylko wersji dynamicznej (main, producent, konsument)"
-	@echo "  make run_static  - Uruchomienie programu z biblioteka statyczna"
-	@echo "  make run_shared  - Uruchomienie programu z biblioteka dynamiczna"
-	@echo "  make clean       - Usuniecie plikow posrednich i bibliotek"
+	@echo "  make static      - Kompilacja tylko wersji statycznej"
+	@echo "  make shared      - Kompilacja tylko wersji dynamicznej"
+	@echo "  make run_static  - Uruchomienie programu z biblioteką statyczną"
+	@echo "  make run_shared  - Uruchomienie programu z biblioteką dynamiczną"
+	@echo "  make clean       - Usunięcie plików tymczasowych"
 	@echo "  make tar         - Spakowanie katalogu do Cwiczenie7.tar.gz"
-	@echo "  make help        - Wyswietlenie tej pomocy"
+	@echo ""
+	@echo "  Zmienne (można nadpisać np. make run_static INPUT_FILE=data.txt):"
+	@echo "     MAIN_NAME=$(MAIN_NAME)"
+	@echo "     PRODUCENT_NAME=$(PRODUCENT_NAME)"
+	@echo "     KONSUMENT_NAME=$(KONSUMENT_NAME)"
+	@echo "     INPUT_FILE=$(INPUT_FILE)"
+	@echo "     OUTPUT_FILE=$(OUTPUT_FILE)"
 	@echo "----------------------------------------------------"
