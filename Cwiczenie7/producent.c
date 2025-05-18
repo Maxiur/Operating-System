@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
          // Przesunięcie wskaźnika wstawiania
         buffer->wstaw = (buffer->wstaw + 1) % NBUF;
 
-        // Powiadomienie do Konsumenta
+        // Powiadomienie konsumenta
         CheckError(my_sem_post(sem_read));
 
         sleep(1); // symulacja pracy

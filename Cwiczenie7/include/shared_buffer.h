@@ -1,7 +1,7 @@
 #ifndef SHARED_BUFFER_H
 #define SHARED_BUFFER_H
 
-#define NELE 20
+#define NELE 60
 #define NBUF 5
 
 typedef struct {
