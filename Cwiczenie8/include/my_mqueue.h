@@ -1,6 +1,12 @@
 #ifndef MY_MQUEUE_H
 #define MY_MQUEUE_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <unistd.h>
+#include <ctype.h>
 #include <mqueue.h>
 
 struct mq_attr {
