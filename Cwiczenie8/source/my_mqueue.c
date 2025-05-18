@@ -3,7 +3,7 @@
 int my_mq_open(mqd_t *mqdes, const char *name, int oflag, mode_t mode, struct mq_attr *attr) {
     mqd_t desc;
 
-    if(oflag & O_CREAT) {
+    if(oflag & O_CREAT)
         desc = mq_open(name, oflag, mode, attr);
     else
         desc = mq_open(name, oflag);
