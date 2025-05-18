@@ -1,4 +1,4 @@
-#define N  // rozmiar bufora cyklicznego
+#define N ? // Rozmiar bufora cyklicznego
 
 typedef struct { ... } Towar;
 Towar bufor[N];
@@ -6,35 +6,36 @@ Towar bufor[N];
 int wstaw = 0;
 int wyjmij = 0;
 
-// Semafory nazwane POSIX
-semaphore SEM_PUSTE = N;    // liczba wolnych miejsc
-semaphore SEM_PELNE = 0;    // liczba zajętych miejsc
-semaphore SEM_MUTEX = 1;    // semafor binarny dla sekcji krytycznej
+// Semafory synchronizujące
+semaphore WOLNE_MIEJSCA = N;         // Liczba wolnych miejsc w buforze
+semaphore GOTOWE_TOWARY = 0;         // Liczba gotowych towarów w buforze
+semaphore BLOKADA_WSTAWIANIA = 1;    // Chroni sekcję wstawiania do bufora
+semaphore BLOKADA_ODBIERANIA = 1;    // Chroni sekcję wyjmowania z bufora
 
 // Proces PRODUCENT
 while (1) {
-    Towar towar = PRODUKUJ();
+    Towar towar = PRODUKUJ();        // Produkuj nowy towar
 
-    P(SEM_PUSTE);           // czekaj, aż będzie miejsce
-    P(SEM_MUTEX);           // wejście do sekcji krytycznej
+    P(WOLNE_MIEJSCA);                // Czekamy, aż w buforze będzie miejsce
+    P(BLOKADA_WSTAWIANIA);           // Blokujemy dostęp do sekcji wstawiania
 
-    bufor[wstaw] = towar;
-    wstaw = (wstaw + 1) % N;
+    bufor[wstaw] = towar;            // Wstawiamy towar do bufora
+    wstaw = (wstaw + 1) % N;         // Przesuwamy indeks wstawiania
 
-    V(SEM_MUTEX);           // wyjście z sekcji krytycznej
-    V(SEM_PELNE);           // sygnalizuj, że bufor ma dane
+    V(BLOKADA_WSTAWIANIA);           // Udostępniamy bufor kolejnym producentom
+    V(GOTOWE_TOWARY);                // Informujemy konsumenta, że coś czeka
 }
 
 // Proces KONSUMENT
 while (1) {
-    P(SEM_PELNE);           // czekaj na dane
-    P(SEM_MUTEX);           // wejście do sekcji krytycznej
+    P(GOTOWE_TOWARY);                // Czekamy, aż pojawi się jakiś towar
+    P(BLOKADA_ODBIERANIA);           // Blokujemy dostęp do sekcji odbierania
 
-    Towar towar = bufor[wyjmij];
-    wyjmij = (wyjmij + 1) % N;
+    Towar towar = bufor[wyjmij];     // Wyjmujemy towar z bufora
+    wyjmij = (wyjmij + 1) % N;       // Przesuwamy indeks wyjmowania
 
-    V(SEM_MUTEX);           // wyjście z sekcji krytycznej
-    V(SEM_PUSTE);           // zwolnij miejsce
+    V(BLOKADA_ODBIERANIA);           // Udostępniamy bufor kolejnym konsumentom
+    V(WOLNE_MIEJSCA);                // Informujemy producenta, że jest miejsce
 
-    KONSUMUJ(towar);
+    KONSUMUJ(towar);                 // Konsumujemy towar
 }

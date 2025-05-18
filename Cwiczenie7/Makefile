@@ -16,9 +16,7 @@ STATIC_LIB = $(LIB_DIR)/libmymodule.a
 SHARED_LIB = $(LIB_DIR)/libmymodule.so
 
 # Programy binarne
-MAIN_NAME ?= ./main
-PRODUCENT_NAME ?= ./producent
-KONSUMENT_NAME ?= ./konsument
+TARGETS = main producent konsument
 
 # Pliki danych
 INPUT_FILE ?= input.txt
@@ -50,18 +48,18 @@ $(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 #=============================================================================
 # Budowanie wersji statycznej
 #=============================================================================
-static: $(STATIC_LIB) main.o producent.o konsument.o
-	$(CC) $(CFLAGS) -o $(MAIN_NAME) main.o $(LDFLAGS_STATIC)
-	$(CC) $(CFLAGS) -o $(PRODUCENT_NAME) producent.o $(LDFLAGS_STATIC)
-	$(CC) $(CFLAGS) -o $(KONSUMENT_NAME) konsument.o $(LDFLAGS_STATIC)
+static: $(STATIC_LIB) $(TARGETS)
+
+$(TARGETS): %: %.o $(STATIC_LIB)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS_STATIC)
 
 #=============================================================================
-# Budowanie wersji dynamicznej
+# Budowanie wersji dynamicznej (shared1)
 #=============================================================================
-shared: $(SHARED_LIB) main.o producent.o konsument.o
-	$(CC) $(CFLAGS) -o $(MAIN_NAME) main.o $(LDFLAGS_SHARED)
-	$(CC) $(CFLAGS) -o $(PRODUCENT_NAME) producent.o $(LDFLAGS_SHARED)
-	$(CC) $(CFLAGS) -o $(KONSUMENT_NAME) konsument.o $(LDFLAGS_SHARED)
+shared: $(SHARED_LIB) $(addsuffix _shared, $(TARGETS))
+
+%_shared: %.o $(SHARED_LIB)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS_SHARED)
 
 #=============================================================================
 # Kompilacja plików .c
@@ -73,10 +71,19 @@ shared: $(SHARED_LIB) main.o producent.o konsument.o
 # Uruchomienie
 #=============================================================================
 run_static: static
-	$(MAIN_NAME) $(PRODUCENT_NAME) $(KONSUMENT_NAME) $(INPUT_FILE) $(OUTPUT_FILE)
+	./main ./producent ./konsument $(INPUT_FILE) $(OUTPUT_FILE)
+	@echo "Wynik porównania plików: $(OUTPUT_FILE) i $(INPUT_FILE)"
+	diff -s $(OUTPUT_FILE) $(INPUT_FILE)
 
-run_shared: shared
-	LD_LIBRARY_PATH=$(LIB_DIR):$$LD_LIBRARY_PATH $(MAIN_NAME) $(PRODUCENT_NAME) $(KONSUMENT_NAME) $(INPUT_FILE) $(OUTPUT_FILE)
+run_shared1: shared
+	./main_shared ./producent_shared ./konsument_shared $(INPUT_FILE) $(OUTPUT_FILE)
+	@echo "Wynik porównania plików: $(OUTPUT_FILE) i $(INPUT_FILE)"
+	diff -s $(OUTPUT_FILE) $(INPUT_FILE)
+
+run_shared2: shared
+	LD_LIBRARY_PATH=$(LIB_DIR):$$LD_LIBRARY_PATH ./main_shared ./producent_shared ./konsument_shared $(INPUT_FILE) $(OUTPUT_FILE)
+	@echo "Wynik porównania plików: $(OUTPUT_FILE) i $(INPUT_FILE)"
+	diff -s $(OUTPUT_FILE) $(INPUT_FILE)
 
 #=============================================================================
 # Czyszczenie
@@ -84,7 +91,7 @@ run_shared: shared
 clean:
 	rm -f *.o *.a *.so *.x *~ core core.* a.out
 	rm -f $(SRC_DIR)/*.o
-	rm -f $(MAIN_NAME) $(PRODUCENT_NAME) $(KONSUMENT_NAME) $(OUTPUT_FILE)
+	rm -f $(TARGETS) $(addsuffix _shared, $(TARGETS)) $(OUTPUT_FILE)
 	rm -f $(STATIC_LIB) $(SHARED_LIB)
 	rm -rf $(LIB_DIR)
 
@@ -102,16 +109,14 @@ help:
 	@echo " Dostępne cele:"
 	@echo "  make             - Kompilacja wersji statycznej i dynamicznej"
 	@echo "  make static      - Kompilacja tylko wersji statycznej"
-	@echo "  make shared      - Kompilacja tylko wersji dynamicznej"
+	@echo "  make shared      - Kompilacja tylko wersji dynamicznej (shared1)"
 	@echo "  make run_static  - Uruchomienie programu z biblioteką statyczną"
-	@echo "  make run_shared  - Uruchomienie programu z biblioteką dynamiczną"
+	@echo "  make run_shared1 - Uruchomienie programu z biblioteką dynamiczną (rpath)"
+	@echo "  make run_shared2 - Uruchomienie programu z biblioteką dynamiczną (LD_LIBRARY_PATH)"
 	@echo "  make clean       - Usunięcie plików tymczasowych"
 	@echo "  make tar         - Spakowanie katalogu do Cwiczenie7.tar.gz"
 	@echo ""
 	@echo "  Zmienne (można nadpisać np. make run_static INPUT_FILE=data.txt):"
-	@echo "     MAIN_NAME=$(MAIN_NAME)"
-	@echo "     PRODUCENT_NAME=$(PRODUCENT_NAME)"
-	@echo "     KONSUMENT_NAME=$(KONSUMENT_NAME)"
 	@echo "     INPUT_FILE=$(INPUT_FILE)"
 	@echo "     OUTPUT_FILE=$(OUTPUT_FILE)"
 	@echo "----------------------------------------------------"
