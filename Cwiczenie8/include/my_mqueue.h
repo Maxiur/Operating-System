@@ -9,13 +9,6 @@
 #include <ctype.h>
 #include <mqueue.h>
 
-struct mq_attr {
-    long mq_flags;    // opcje (np. O_NONBLOCK)
-    long mq_maxmsg;   // maks. liczba komunikatów w kolejce
-    long mq_msgsize;  // maks. rozmiar pojedynczego komunikatu (w bajtach)
-    long mq_curmsgs;  // liczba komunikatów aktualnie w kolejce
-};
-
 // Tworzenie kolejki komunikatów
 int my_mq_open(mqd_t *mqdes, const char *name, int oflag, mode_t mode, struct mq_attr *attr);
 

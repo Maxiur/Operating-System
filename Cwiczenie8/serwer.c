@@ -2,24 +2,22 @@
 #include "./include/common.h"
 #include "./include/CheckError.h"
 
-#define FORMAT_CLIENT_QUEUE_NAME "/%s"
-
-mqd_t client_queue;
 mqd_t server_queue;
-char client_queue_name[64];
 
+static volatile sig_atomic_t running = 1;
+
+// Zwalnianie zasobów kolejki
 void cleanup() {
-    CheckError(my_mq_close(client_queue));
-    CheckError(my_mq_unlink(client_queue_name));
+    CheckError(my_mq_close(server_queue));
+    CheckError(my_mq_unlink(SERVER_QUEUE_NAME));
 }
 
-void signal_handler(int sig)
-{
-    if (sig == SIGINT)
-    {
-        printf("\nOtrzymano sygnał SIGINT. Kończę program i usuwam zasoby.\n");
-        exit(0); // cleanup()
-    }
+// Handler SIGINT (CTRL + C)
+void signal_handler(int sig) {
+    if (sig == SIGINT) {
+        printf("\n[Serwer] Otrzymano SIGINT. Kończę program i usuwam zasoby.\n");
+		running = 0;
+	}
 }
 
 int calculator(const char *expr, double *result) {
@@ -33,18 +31,17 @@ int calculator(const char *expr, double *result) {
         case '+': *result = a + b; return 1;
         case '-': *result = a - b; return 1;
         case '*': *result = a * b; return 1;
-        case '/': if(b == 0) return 0; *result = a / b; return 1;
+        case '/': if (b == 0) return 0; *result = a / b; return 1;
         default: return 0;
     }
 }
 
 int main() {
+    // cleanup() & Handler
     atexit(cleanup);
     CheckError(signal(SIGINT, signal_handler) != SIG_ERR);
 
-    pid_t pid = getpid();
-    snprintf(client_queue_name, sizeof(client_queue_name), "/%d", pid);
-
+    // Atrybuty kolejki serwera
     struct mq_attr attr = {
         .mq_flags = 0,
         .mq_maxmsg = 10,
@@ -52,30 +49,53 @@ int main() {
         .mq_curmsgs = 0
     };
 
-    // Tworzenie kolejki klienta
-    CheckError(my_mq_open(&client_queue, client_queue_name, O_CREAT | O_RDONLY, 0666, &attr));
+    // Tworzenie kolejki serwera
+    CheckError(my_mq_open(&server_queue, SERVER_QUEUE_NAME, O_CREAT | O_RDONLY, 0666, &attr));
+    printf("[Serwer] Kolejka %s utworzona. Oczekiwanie na wiadomości...\n", SERVER_QUEUE_NAME);
 
-    // Otwieranie kolejki serwera
-    CheckError(my_mq_open(&server_queue, SERVER_QUEUE_NAME, O_WRONLY, 0, NULL));
-
-    char expr[MAX_EXPR_SIZE];
+    // Bufory
     char message[MAX_MSG_SIZE];
+    char expr[MAX_EXPR_SIZE];
     char response[MAX_MSG_SIZE];
+    char client_queue_name[32];
 
-    printf("[Klient] Podaj działanie (np. 2 + 3) lub Ctrl+D, aby zakończyć:\n");
+    while (running) {
+        // Odbiór
+        memset(message, 0, sizeof(message));
+        CheckError(my_mq_receive(server_queue, message, sizeof(message), NULL));
 
-    while (fgets(expr, sizeof(expr), stdin)) {
-        expr[strcspn(expr, "\n")] = '\0';  // usuń \n z końca
+        // Parsowanie
+        pid_t client_pid;
+        if (sscanf(message, "%d %[^\n]", &client_pid, expr) != 2) {
+            fprintf(stderr, "[Serwer] Błędny format wiadomości: %s\n", message);
+            continue;
+        }
 
-        snprintf(message, sizeof(message), "%d %s", pid, expr);
+        printf("[Serwer] Odebrano od PID %d: %s\n", client_pid, expr);
 
-        CheckError(my_mq_send(server_queue, message, strlen(message) + 1, 0));
+        // Obliczenia
+        double result;
+        if (!calculator(expr, &result)) {
+            fprintf(stderr, "[Serwer] Błąd obliczenia wyrażenia: %s\n", expr);
+            continue;
+        }
 
-        memset(response, 0, sizeof(response));
-        CheckError(my_mq_receive(client_queue, response, sizeof(response), NULL));
+        // Formatowanie odpowiedzi
+        int L;
+		L = snprintf(response, sizeof response, "%.6lf", result);
+		CheckError(L > 0 && L < (int)sizeof response);
 
-        printf("[Klient] Wynik: %s\n", response);
-        printf("[Klient] Podaj kolejne działanie lub Ctrl+D, aby zakończyć:\n");
+        // Przygotowanie nazwy kolejki klienta
+		L = snprintf(client_queue_name, sizeof client_queue_name, "/%d", client_pid);
+		CheckError(L > 0 && L < (int)sizeof client_queue_name);
+
+        // Wysyłka i zamknięcie
+        mqd_t client_queue;
+        CheckError(my_mq_open(&client_queue, client_queue_name, O_WRONLY, 0, NULL));
+        CheckError(my_mq_send(client_queue, response, L + 1, 0));
+        CheckError(my_mq_close(client_queue));
+
+        printf("[Serwer] Wysłano wynik %.6lf do klienta %d\n", result, client_pid);
     }
 
     cleanup();
