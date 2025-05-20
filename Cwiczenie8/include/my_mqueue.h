@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <mqueue.h>
+#include <stdbool.h>
 
 // Tworzenie kolejki komunikatów
 int my_mq_open(mqd_t *mqdes, const char *name, int oflag, mode_t mode, struct mq_attr *attr);
