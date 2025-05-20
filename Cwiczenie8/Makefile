@@ -4,6 +4,9 @@
 SRC_DIR     := source
 INCLUDE_DIR := include
 
+# Nazwa katalogu
+PARENT_DIR = $(notdir $(CURDIR))
+
 #=============================================================================
 # Kompilator i flagi
 #=============================================================================
@@ -72,6 +75,11 @@ run: all
 .PHONY: clean
 clean:
 	rm -f *.o $(SRC_DIR)/*.o $(CLIENT_BIN) $(SERVER_BIN)
+
+# Pakowanie i archiwizacja
+.PHONY: clean
+tar: clean
+	(cd .. && tar cvzf $(PARENT_DIR).tar.gz $(PARENT_DIR) && ls -altr)
 
 #=============================================================================
 # Pomoc
