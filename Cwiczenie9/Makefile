@@ -5,6 +5,8 @@ CC        := gcc
 CFLAGS    := -Wall -Wextra -g -std=c99 -pedantic -pthread
 LDFLAGS   := -pthread
 
+PARENT_DIR = $(notdir $(CURDIR))
+
 #=============================================================================
 # Parametry programu
 #=============================================================================
@@ -61,8 +63,7 @@ clean:
 #=============================================================================
 .PHONY: tar
 tar: clean
-	@echo "Tworzę archiwum $(notdir $(CURDIR)).tar.gz"
-	@tar czf $(notdir $(CURDIR)).tar.gz .
+	(cd .. && tar cvzf $(PARENT_DIR).tar.gz $(PARENT_DIR) && ls -altr)
 
 #=============================================================================
 # Pomoc
