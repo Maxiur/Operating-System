@@ -30,8 +30,9 @@
 
 // ANSI kolory i formatowanie
 #define COLOR_RESET     "\033[0m"         // reset koloru
-#define COLOR_PRIVATE   "\033[1;32m"     // jasna zieleń - sekcje prywatne
-#define COLOR_CRITICAL  "\033[1;31m"     // jasnoczerwony - sekcje krytyczne
+#define COLOR_PRIVATE   "\033[1;32m"     // zielony - sekcje prywatne
+#define COLOR_CRITICAL  "\033[1;31m"     // czerwony - sekcje krytyczne
+#define COLOR_DONE      "\033[1;34m"     // niebieski - koniec działania wątku
 #define CLEAR_SCREEN()  printf("\033[2J")
 #define MOVE_CURSOR(r,c) printf("\033[%d;%dH", (r),(c))
 #define CLEAR_LINE()    printf("\033[K") // usuwa zawartość bieżącej linii od kursora
@@ -42,6 +43,9 @@
 pthread_mutex_t muteks;         // muteks POSIX do ochrony sekcji krytycznej
 long global_counter = 0;        // wspólny licznik inkrementowany w sekcji krytycznej
 int THREAD_COUNT, SECTION_COUNT;
+
+// Obsługa błędów
+int my_error = 0;
 
 //-------------------------------------------------------------
 // Funkcja losowego uspienia wątku
@@ -56,6 +60,7 @@ void rsleep(unsigned int *seed) {
 //-------------------------------------------------------------
 void *thread_fn(void *arg) {
     int id = *(int*)arg;
+    long local_counter_copy = 0;
     unsigned int seed = time(NULL) ^ id;
     for (int i = 1; i <= SECTION_COUNT; ++i) {
         //---------------------------------------------------------
@@ -66,10 +71,8 @@ void *thread_fn(void *arg) {
         //---------------------------------------------------------
         MOVE_CURSOR(id + 2, 1);
         CLEAR_LINE();
-        printf(COLOR_PRIVATE
-               "[Wątek %d] Prywatna sekcja #%d, global = %ld"
-               COLOR_RESET,
-               id, i, global_counter);
+        printf(COLOR_PRIVATE "[Wątek %d] Prywatna sekcja #%d, global = %ld " COLOR_RESET, id, i, local_counter_copy);
+
         fflush(stdout);
         rsleep(&seed);
 
@@ -81,27 +84,36 @@ void *thread_fn(void *arg) {
         //  - losowe uspienie
         //  - odblokowanie muteksu
         //---------------------------------------------------------
-        pthread_mutex_lock(&muteks);
+
+        if ((my_error = pthread_mutex_lock(&muteks)) != 0) {
+            fprintf(stderr, "Wątek %d: błąd pthread_mutex_lock: %s\n", id, strerror(my_error));
+            pthread_exit(NULL);
+        }
+
         global_counter++;
-        MOVE_CURSOR(id + 2, 40);
+        local_counter_copy = global_counter;
+
+        MOVE_CURSOR(id + 2, 48);
         CLEAR_LINE();
-        printf(COLOR_CRITICAL
-               "[Wątek %d] Krytyczna sekcja #%d, global = %ld"
-               COLOR_RESET,
-               id, i, global_counter);
+        printf(COLOR_CRITICAL "[Wątek %d] Krytyczna sekcja #%d, global = %ld" COLOR_RESET, id, i, global_counter);
         fflush(stdout);
         rsleep(&seed);
-        pthread_mutex_unlock(&muteks);
+
+        if ((my_error = pthread_mutex_unlock(&muteks)) != 0) {
+            fprintf(stderr, "Wątek %d: błąd pthread_mutex_unlock: %s\n", id, strerror(my_error));
+            pthread_exit(NULL);
+        }
 
         //---------------------------------------------------------
         // Przywrócenie koloru prywatnego po krytycznej sekcji
         //---------------------------------------------------------
         MOVE_CURSOR(id + 2, 1);
         CLEAR_LINE();
-        printf(COLOR_PRIVATE
-               "[Wątek %d] Po sekcji krytycznej #%d"
-               COLOR_RESET,
-               id, i);
+        if(i == SECTION_COUNT)
+            printf(COLOR_DONE "[Wątek %d] Po sekcji krytycznej #%d, global = %ld" COLOR_RESET, id, i, local_counter_copy);
+        else
+            printf(COLOR_PRIVATE "[Wątek %d] Po sekcji krytycznej #%d, global = %ld" COLOR_RESET, id, i, local_counter_copy);
+
         fflush(stdout);
         rsleep(&seed);
     }
@@ -113,7 +125,7 @@ void *thread_fn(void *arg) {
 //-------------------------------------------------------------
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        fprintf(stderr, "Użycie: %s <liczba_wątków> <liczba_sekcji>\n", argv[0]);
+        fprintf(stderr, "Poprawne wywołanie: %s <liczba_wątków> <liczba_sekcji>\n", argv[0]);
         return EXIT_FAILURE;
     }
     THREAD_COUNT = atoi(argv[1]);
@@ -125,9 +137,10 @@ int main(int argc, char *argv[]) {
 
     // Przygotowanie ekranu
     CLEAR_SCREEN();
+    fflush(stdout);
 
     // Inicjalizacja muteksu
-    if (pthread_mutex_init(&muteks, NULL) != 0) {
+    if ((my_error = pthread_mutex_init(&muteks, NULL)) != 0) {
         fprintf(stderr, "Błąd inicjalizacji muteksu: %s\n", strerror(errno));
         return EXIT_FAILURE;
     }
@@ -135,21 +148,38 @@ int main(int argc, char *argv[]) {
     // Wypisanie informacji o muteksie i ID wątków
     MOVE_CURSOR(1, 1);
     printf("Adres muteksu: %p\n", (void*)&muteks);
-    pthread_t *threads = malloc(sizeof(pthread_t) * THREAD_COUNT);
-    int *args = malloc(sizeof(int) * THREAD_COUNT);
+
+    pthread_t *threads;
+    int *args;
+
+    if ((threads = malloc(sizeof(pthread_t) * THREAD_COUNT)) == NULL) {
+        perror("Błąd alokacji pamięci dla threads");
+        return EXIT_FAILURE;
+    }
+    if ((args = malloc(sizeof(int) * THREAD_COUNT)) == NULL) {
+        perror("Błąd alokacji pamięci dla args");
+        free(threads);
+        return EXIT_FAILURE;
+    }
+
     for (int i = 0; i < THREAD_COUNT; ++i) {
         args[i] = i;
-        printf("Wątek %d, pthread_t ID: %lu\n",
-               i, (unsigned long)threads[i]);
+        printf("Wątek %d, pthread_t ID: %lu\n", i, (unsigned long)threads[i]);
     }
 
     // Uruchomienie wątków
     for (int i = 0; i < THREAD_COUNT; ++i) {
-        pthread_create(&threads[i], NULL, thread_fn, &args[i]);
+        if((my_error = pthread_create(&threads[i], NULL, thread_fn, &args[i])) != 0) {
+            fprintf(stderr, "Błąd tworzenia wątku %d: %s\n", i, strerror(my_error));
+            exit(EXIT_FAILURE);
+        }
     }
     // Oczekiwanie na zakończenie wątków
     for (int i = 0; i < THREAD_COUNT; ++i) {
-        pthread_join(threads[i], NULL);
+        if ((my_error = pthread_join(threads[i], NULL)) != 0) {
+            fprintf(stderr, "Błąd dołączania wątku %d: %s\n", i, strerror(my_error));
+            // Idziemy dalej pomimo tego
+        }
     }
 
     // Niszczenie muteksu
@@ -160,10 +190,9 @@ int main(int argc, char *argv[]) {
 
     // Wypisanie wyniku końcowego
     MOVE_CURSOR(THREAD_COUNT + 4, 1);
-    long expected = (long)THREAD_COUNT * SECTION_COUNT;
+    long expected = THREAD_COUNT * SECTION_COUNT;
     printf("\nWszystkie wątki zakończone.\n");
-    printf("Licznik globalny = %ld, oczekiwana wartość = %ld\n",
-           global_counter, expected);
+    printf("Licznik globalny = %ld, oczekiwana wartość = %ld\n", global_counter, expected);
 
     return 0;
 }
