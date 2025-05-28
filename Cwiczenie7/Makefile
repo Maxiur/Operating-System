@@ -24,7 +24,8 @@ OUTPUT_FILE ?= output.txt
 
 # Linkowanie
 LDFLAGS_STATIC = -L$(LIB_DIR) -lmymodule -lrt -pthread
-LDFLAGS_SHARED = -L$(LIB_DIR) -lmymodule -Wl,-rpath,$(LIB_DIR) -lrt -pthread
+LDFLAGS_SHARED1 = -L$(LIB_DIR) -lmymodule -Wl,-rpath,$(LIB_DIR) -lrt -pthread
+LDFLAGS_SHARED = -L$(LIB_DIR) -lmymodule -lrt -pthread
 
 #=============================================================================
 # Domyślny cel

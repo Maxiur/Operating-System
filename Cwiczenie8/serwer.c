@@ -26,6 +26,7 @@ void signal_handler(int sig) {
     if (sig == SIGINT) {
         printf("\n[Serwer] Otrzymano SIGINT. Kończę program i usuwam zasoby.\n");
 		running = 0;
+		exit(0);
 	}
 }
 
@@ -98,7 +99,7 @@ int main() {
                     case '*': result = a * b; break;
                     case '/': result = a / b; break;
                 }
-                resp_len = snprintf(response, sizeof response, "%.6lf", result);
+                resp_len = snprintf(response, sizeof response, "%g", result);
             }
         }
         CheckError(resp_len > 0 && resp_len < (int)sizeof response);

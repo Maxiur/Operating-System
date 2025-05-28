@@ -89,6 +89,5 @@ int main(void) {
 
         printf("[Klient] Podaj kolejne działanie lub Ctrl+D, aby zakończyć:\n");
     }
-    cleanup();
     return 0;
 }
