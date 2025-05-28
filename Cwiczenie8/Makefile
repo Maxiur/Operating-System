@@ -61,13 +61,13 @@ $(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 .PHONY: run
 run: all
 	@echo "Uruchamiam serwer..."
-	xterm -hold -title SERWER   -bg red   -fg black -e ./serwer &
+	xterm -hold -title SERWER   -bg red   -fg black -e ./$(SERVER_BIN) &
 	@sleep 1
 	@echo "Uruchamiam klienta 1..."
-	xterm -hold -title KLIENT1  -bg green -fg black -e ./klient &
+	xterm -hold -title KLIENT1  -bg green -fg black -e ./$(CLIENT_BIN) &
 	@sleep 1
 	@echo "Uruchamiam klienta 2..."
-	xterm -hold -title KLIENT2  -bg green -fg black -e ./klient &
+	xterm -hold -title KLIENT2  -bg green -fg black -e ./$(CLIENT_BIN) &
 
 #=============================================================================
 # Czyszczenie
