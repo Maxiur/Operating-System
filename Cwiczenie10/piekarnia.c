@@ -1,5 +1,5 @@
 //-------------------------------------------------------------
-// Autor: Mateusz Kamiński                   Kraków, 28.05.2025
+// Autor: Mateusz Kamiński                   Kraków, 03.06.2025
 //
 // ĆWICZENIE 10 - Wzajemne wykluczanie dla wątków: Algorytm piekarni z kolorami
 // Program demonstruje wzajemne wykluczanie wątków przy użyciu algorytmu piekarni.
@@ -30,13 +30,13 @@
 #define MOVE_CURSOR(r,c) printf("\033[%d;%dH", (r),(c))
 #define CLEAR_LINE()    printf("\033[K")
 
-#define RSLEEP_MIN      200
-#define RSLEEP_MAX      500
+#define RSLEEP_MIN      700
+#define RSLEEP_MAX      1000
 
 int THREAD_COUNT, SECTION_COUNT;
 long global_counter = 0;
-int *choosing;
-int *number;
+volatile int *choosing;
+volatile int *number;
 
 void rsleep(unsigned int *seed) {
     int ms = rand_r(seed) % (RSLEEP_MAX - RSLEEP_MIN + 1) + RSLEEP_MIN;
@@ -52,10 +52,11 @@ void *thread_fn(void *arg) {
         // Sekcja prywatna po lewej
         MOVE_CURSOR(id + 2, 1);
         CLEAR_LINE();
-        printf(COLOR_PRIVATE "[Wątek %d] Prywatna sekcja #%d, global = %ld" COLOR_RESET, id, i, local_copy);
+        printf(COLOR_PRIVATE "[Wątek %d] Prywatna sekcja #%d, global = %ld" COLOR_RESET, id, i, global_counter);
         fflush(stdout);
         rsleep(&seed);
 
+        // Algorytm piekarni - wejście do sekcji krytycznej
         choosing[id] = 1;
         int max = 0;
         for (int j = 0; j < THREAD_COUNT; j++) {
@@ -69,40 +70,38 @@ void *thread_fn(void *arg) {
             while (number[j] != 0 && (number[j] < number[id] || (number[j] == number[id] && j < id)));
         }
 
-        // Pusta linia z lewej
-        MOVE_CURSOR(id + 2, 1);
-        CLEAR_LINE();
-        fflush(stdout);
-        rsleep(&seed);
-
         // Sekcja krytyczna po prawej
-        MOVE_CURSOR(id + 2, 48);
+        MOVE_CURSOR(id + 2, 1);    // czyszczenie całej linii (od początku)
         CLEAR_LINE();
-        global_counter++;
+
+        MOVE_CURSOR(id + 2, 60);   // dopiero potem ustawienie kursora na kolumnie 60
         local_copy = global_counter;
+        rsleep(&seed);
+        local_copy++;
+        global_counter = local_copy;
         printf(COLOR_CRITICAL "[Wątek %d] Krytyczna sekcja #%d, global = %ld" COLOR_RESET, id, i, global_counter);
+        CLEAR_LINE();
         fflush(stdout);
-        usleep(700 * 1000);  // dłużej zatrzymana sekcja krytyczna
+        usleep(1000 * 1000); // symulacja pracy w sekcji krytycznej
+
 
         number[id] = 0;
 
         // Powrót do lewej
-        MOVE_CURSOR(id + 2, 1);
-        CLEAR_LINE();
         if (i == SECTION_COUNT)
-            printf(COLOR_DONE "[Wątek %d] Po sekcji krytycznej #%d, global = %ld" COLOR_RESET, id, i, local_copy);
-        else
-            printf(COLOR_PRIVATE "[Wątek %d] Po sekcji krytycznej #%d, global = %ld" COLOR_RESET, id, i, local_copy);
+        {
+            MOVE_CURSOR(id + 2, 1);
+            CLEAR_LINE();
+            printf(COLOR_DONE "[Wątek %d] Po sekcji krytycznej #%d, global = %ld" COLOR_RESET, id, i, global_counter);
+        }
 
-        fflush(stdout);
-        rsleep(&seed);
     }
     return NULL;
 }
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        fprintf(stderr, "Użycie: %s <liczba_wątków> <liczba_sekcji>\n", argv[0]);
+        fprintf(stderr, "Poprawne wywołanie: %s <liczba_wątków> <liczba_sekcji>\n", argv[0]);
         return EXIT_FAILURE;
     }
     THREAD_COUNT = atoi(argv[1]);
@@ -134,7 +133,6 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < THREAD_COUNT; ++i) {
         args[i] = i;
-        printf("Wątek %d, pthread_t ID: %lu\n", i, (unsigned long)threads[i]);
     }
 
     for (int i = 0; i < THREAD_COUNT; ++i) {
