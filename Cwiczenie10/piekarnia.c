@@ -74,11 +74,11 @@ void *thread_fn(void *arg) {
         MOVE_CURSOR(id + 2, 1);    // czyszczenie całej linii (od początku)
         CLEAR_LINE();
 
-        MOVE_CURSOR(id + 2, 60);   // dopiero potem ustawienie kursora na kolumnie 60
         local_copy = global_counter;
         rsleep(&seed);
         local_copy++;
         global_counter = local_copy;
+	    MOVE_CURSOR(id + 2, 60);
         printf(COLOR_CRITICAL "[Wątek %d] Krytyczna sekcja #%d, global = %ld" COLOR_RESET, id, i, global_counter);
         CLEAR_LINE();
         fflush(stdout);
